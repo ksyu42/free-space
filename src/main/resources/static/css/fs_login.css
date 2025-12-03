@@ -1,0 +1,98 @@
+/*全体背景色*/
+body{
+	background-color: #f4f4f4;
+}
+
+/*タイトル*/
+.txtcl{
+	height: 150px;
+	text-align: center;
+	background-color: rgb(0, 255, 64);
+	color: white;
+	text-align:center;
+	font-size:25px;
+	line-height: 150px;
+}
+
+/*入力エリア全般*/
+.mainArea{
+	width:70%;
+	margin:auto;
+ 	padding-top: 100px;
+	padding-bottom: 100px;
+}
+
+/*メールアドレス・パスワード*/
+input{
+	font-size:35px;
+	width: 100%;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	border:3px solid  rgb(128, 255, 128);
+	border-radius: 10px;
+}
+
+
+/*メールアドレス・パスワード入力時*/
+input:focus {
+	border: 3px solid  rgb(128, 255, 128);
+	outline: 0;
+}
+
+/*メールアドレス・パスワード上下余白*/
+.put{
+	margin-top: 20px;
+	margin-bottom: 55px;
+}
+
+/*ボタン*/
+.btn{
+	background-color: rgb(128, 255, 128);
+  	color: white;
+	font-size:30px;
+	border:1px solid  rgb(128, 255, 128);
+  	border-radius: 10px;
+	display: block;
+	width:300px;
+	margin: auto;
+	padding-top: 20px;
+	padding-bottom: 20px;
+	font-weight:bold;
+	cursor: pointer;
+}
+
+/*水平線*/
+hr{
+	height: 3px;
+	background-color: rgb(128, 255, 128);
+	border: none;
+	color: rgb(128, 255, 128);
+	margin-top: 80px;
+}
+
+/*新規登録・パスワードを忘れた方はこちら*/
+p{
+	text-align: center;
+	font-size:25px;
+}
+
+/*リンク*/
+a{
+	color:rgb(128, 255, 128);
+	text-decoration:underline;
+}
+
+/*リンククリック後*/
+a:link {
+	color:rgb(128, 255, 128);
+	text-decoration:underline;
+}
+
+/*エラーメッセージ*/
+.valiErr{
+	text-align: center;
+	font-size:20px;
+	color:red;
+}
+
+ 

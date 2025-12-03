@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>予約確認</title>
+    <link rel="stylesheet" th:href="@{/css/reservation.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    
+</head>
+<body>
+
+	<!-- スペース一覧へのリンク -->
+	<div class="navigation">
+		<div class="nav-left">
+			<span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+		</div>
+		<div class="nav-right">
+			<a th:href="@{/space}" class="btn">スペース一覧へ</a>
+			<a th:href="@{/mypage}" class="btn">マイページへ</a>
+			<a th:href="@{/logout}" class="btn">ログアウト</a>
+		</div>
+	</div>
+    <h1>予約内容の確認</h1>
+
+    <div class="space-container">
+        <div class="space-card" th:each="item : ${selectItems}">
+
+            <div class="space-item">
+                <strong>スペース名：</strong>
+                <span th:text="${item.name}"></span>
+            </div>
+
+            <div class="space-item">
+                <strong>場所：</strong>
+                <span th:text="${item.location}"></span>
+            </div>
+
+            <form th:action="@{/reserve/complete}" method="post">
+                <input type="hidden" name="spaceId" th:value="${item.id}" />
+           
+		       	<div class="space-item space-inline">
+					<strong>利用時間：</strong>
+					<select name="spaceTimesId" required>
+						<option value="" disabled selected>時間を選択してください</option>
+						<option th:each="time : ${spaceTimeList}"
+								th:value="${time.spaceTimesId}"
+								th:text="${time.time + (time.seatCount == 0 ? '（満席）' : '（残り' + time.seatCount + '席）')}"
+								th:disabled="${time.seatCount == 0}">
+						</option>
+
+					</select>
+				</div>
+				<div class="button-wrapper">
+				    <button type="submit">予約を確定する</button>				    
+				</div>
+            </form>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン | フリースペース予約</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+    <!-- 空のナビゲーション領域（他ページと同じ高さ） -->
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">&nbsp;</div>
+    </div>
+
+    <!-- タイトルバー -->
+    <div class="title-bar">
+        <h1>ログイン画面</h1>
+    </div>
+
+    <!-- ログインフォーム -->
+    <div class="form-wrapper">
+        <form method="get" th:action="@{/check}" th:object="${user}" class="login-form">
+            <div class="form-group">
+                <input type="text" th:field="*{userMail}" placeholder="メールアドレス" required>
+            </div>
+            <div class="form-group">
+                <input type="password" th:field="*{userPass}" placeholder="パスワード" required>
+            </div>
+
+            <!-- エラーメッセージ -->
+            <div class="message error" th:if="${#fields.hasErrors('userMail')}" th:errors="*{userMail}"></div>
+            <div class="message error" th:if="${#fields.hasErrors('userPass')}" th:errors="*{userPass}"></div>
+            <div class="message error" th:each="error : ${errorlist}" th:text="${error}"></div>
+
+            <div class="button-wrapper">
+                <button type="submit" class="btn-orange">ログイン</button>
+            </div>
+        </form>
+
+        <!-- 管理者ログインリンク -->
+        <p class="admin-link">
+            <a th:href="@{/admin/login}">管理者はこちら</a>
+        </p>
+    </div>
+
+</body>
+</html>

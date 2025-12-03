@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>スペース登録</title>
+</head>
+<body>
+<h2>スペース新規登録</h2>
+
+<form th:action="@{/admin/space/save}" method="post">
+  <label>スペース名:</label>
+  <input type="text" name="name" required><br>
+
+  <label>場所:</label>
+  <input type="text" name="location" required><br>
+
+  <button type="submit">登録</button>
+</form>
+
+<a th:href="@{/admin/space}">← 戻る</a>
+</body>
+</html>

@@ -1,0 +1,48 @@
+body {
+    background-color: #f4f4f4;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+.title-bar {
+    background-color: #f08c4c;
+    height: 100px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.title-bar h1 {
+    color: white;
+    font-size: 30px;
+    margin: 0;
+}
+
+/* メニューコンテナ */
+.admin-menu {
+    max-width: 600px;
+    margin: 80px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    padding: 20px;
+}
+
+/* ボタンスタイル */
+.admin-btn {
+    background-color: #f08c4c;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.admin-btn:hover {
+    background-color: #e67e22;
+}

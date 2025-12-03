@@ -1,0 +1,100 @@
+/* 背景 */
+body {
+    background-color: #f4f4f4;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+/* タイトルバー */
+.title-bar {
+    background-color: #f08c4c;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title-bar h1 {
+    color: white;
+    font-size: 28px;
+    margin: 0;
+}
+
+/* ナビゲーション（スペース確保用） */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 20px;
+    height: 40px; /* 高さを指定して他画面と統一 */
+}
+
+/* フォーム全体の外枠 */
+.form-wrapper {
+    max-width: 400px;
+    margin: 60px auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 入力欄 */
+input[type="text"],
+input[type="password"] {
+    font-size: 18px;
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #f08c4c;
+    border-radius: 6px;
+    box-sizing: border-box;
+    margin-bottom: 25px;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #e67e22;
+}
+
+/* ログインボタン（オレンジ） */
+.btn-orange {
+    background-color: #f08c4c;
+    color: white;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-orange:hover {
+    background-color: #e67e22;
+}
+
+/* エラーメッセージ */
+.message.error {
+    text-align: center;
+    color: red;
+    font-size: 14px;
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
+
+/* 管理者リンク */
+.admin-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+.admin-link a {
+    color: #3498db;
+    text-decoration: underline;
+}
+
+.admin-link a:hover {
+    color: #2a80b9;
+}

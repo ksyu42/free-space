@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>マイページ</title>
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body>
+
+    <!-- スペース一覧へのリンク -->
+    <div class="navigation">
+		<div class="nav-left">
+			<span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+		</div>
+		<div class="nav-right">
+			<a th:href="@{/space}" class="btn">スペース一覧へ</a>
+			<a th:href="@{/profile}" class="btn">プロフィール編集</a>
+			<a th:href="@{/logout}" class="btn">ログアウト</a>
+		</div>
+	</div>
+
+
+    <h1>マイページ</h1>
+
+    <div class="space-container">
+        <div class="space-card" th:each="reservation : ${reservationList}">
+
+            <!-- バッジ：予約済み -->
+            <div class="badge-wrapper">
+                <span class="badge">予約済み</span>
+            </div>
+
+            <div class="space-item">
+                <strong>スペース名：</strong>
+                <span class="space-name" th:text="${reservation.spaceName}"></span>
+            </div>
+
+            <div class="space-item">
+                <strong>場所：</strong>
+                <span class="space-detail" th:text="${reservation.location}"></span>
+            </div>
+
+            <div class="space-item">
+                <strong>日付：</strong>
+                <span class="space-detail" th:text="${reservation.reservationDay}"></span>
+            </div>
+
+            <div class="space-item">
+                <strong>時間：</strong>
+                <span class="space-detail" th:text="${reservation.time}"></span>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>プロフィール変更 | フリースペース予約</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
+</head>
+<body>
+
+    <!-- ナビゲーション -->
+    <div class="navigation">
+        <div class="nav-left">
+            <span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+        </div>
+        <div class="nav-right">
+            <a th:href="@{/space}" class="btn">スペース一覧</a>
+            <a th:href="@{/mypage}" class="btn">マイページ</a>
+            <a th:href="@{/logout}" class="btn">ログアウト</a>
+        </div>
+    </div>
+
+    <!-- タイトルバー -->
+    <div class="title-bar">
+        <h1>プロフィール情報の変更</h1>
+    </div>
+
+    <!-- フォーム -->
+    <div class="form-wrapper">
+        <form th:action="@{/profile/update}" method="post" class="profile-form">
+            <div class="form-group">
+                <label>名前</label>
+                <input type="text" name="name" th:value="${loginUser.name}" required>
+            </div>
+
+            <div class="form-group">
+                <label>現在のパスワード</label>
+                <input type="password" name="currentPass">
+            </div>
+
+            <div class="form-group">
+                <label>新しいパスワード</label>
+                <input type="password" name="newPass">
+            </div>
+
+            <div class="button-wrapper">
+                <button type="submit" class="btn-orange">変更を保存</button>
+            </div>
+
+            <div class="message error" th:if="${error}" th:text="${error}"></div>
+            <div class="message success" th:if="${success}" th:text="${success}"></div>
+        </form>
+    </div>
+
+</body>
+</html>

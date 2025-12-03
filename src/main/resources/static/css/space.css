@@ -1,0 +1,124 @@
+
+/* カード全体のラッパー */
+.space-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* スペースカード */
+.space-card {
+    background-color: #fff;
+    border: 2px solid #f08c4c;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    padding: 20px;
+    transition: transform 0.2s;
+}
+
+.space-card:hover {
+    transform: scale(1.03);
+}
+
+/* スペースの各項目 */
+.space-item {
+    margin-bottom: 12px;
+}
+
+.space-item strong {
+    display: inline-block;
+    width: 130px;
+    color: #f08c4c;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.space-item span {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* スペース名だけ大きく */
+.space-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    display: block;
+    margin-bottom: 12px;
+    white-space: nowrap;       /* ← 追加 */
+    overflow: hidden;          /* ← 長すぎる文字列を切り捨て */
+    text-overflow: ellipsis;   /* ← 末尾に「...」を表示 */
+}
+
+/* 利用時間・場所などの詳細 */
+.space-detail {
+    font-size: 1rem;
+    color: #555;
+}
+
+/* 座席ステータス */
+.status {
+    font-weight: bold;
+    font-size: 1rem;
+    color: green;
+}
+
+.status.full {
+    color: red;
+}
+
+/* ボタンのデザイン */
+.space-item button {
+    background-color: #f08c4c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.space-item button:hover {
+    background-color: #d97639;
+}
+/* ボタンを中央に配置 */
+.space-item.button-wrapper {
+    text-align: center;
+}
+/* 座席ステータスの基本 */
+.status {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* 空席時：明るい緑 */
+.status-vacant {
+    color: #28a745; /* 明るい緑 */
+}
+
+/* 満席時：赤 */
+.status-full {
+    color: #e74c3c; /* 赤 */
+}
+.navigation {
+	margin: 10px 20px;
+	text-align: right;
+}
+
+.navigation .btn {
+	background-color: #3498db;
+	color: #fff;
+	padding: 8px 16px;
+	border-radius: 5px;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+
+
+
+

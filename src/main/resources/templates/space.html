@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<!-- エンコード -->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<!-- エンコード -->
+	<link rel="stylesheet" th:href="@{/css/space.css}">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+	<title>フリースペース一覧</title>
+</head>
+    
+<body>
+
+	<!-- 🔗 マイページへのリンク -->
+	<div class="navigation">
+		<div class="nav-left">
+			<span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+		</div>
+		<div class="nav-right">
+			<a th:href="@{/mypage}" class="btn">マイページへ</a>
+			<a th:href="@{/logout}" class="btn">ログアウト</a>
+		</div>
+	</div>
+	<h1>フリースペース一覧</h1>
+	
+	<!-- 各スペース表示 -->
+	<div class="space-container">
+		<div class="space-card" th:each="space : ${spaceList}">
+	
+			<div class="space-item">
+				<strong>スペース名：</strong>
+				<span class="space-name" th:text="${space.name}"></span>
+			</div>
+	
+			<div class="space-item">
+				<strong>場所：</strong>
+				<span class="space-detail" th:text="${space.location}"></span>
+			</div>
+	
+			<div class="space-item">
+				<strong>利用開始時間：</strong>
+				<span class="space-detail" th:text="${space.availableFrom}"></span>
+			</div>
+	
+			<div class="space-item">
+				<strong>利用終了時間：</strong>
+				<span class="space-detail" th:text="${space.availableTo}"></span>
+			</div>
+	
+			<div class="space-item">
+				<strong>座席状況：</strong>
+				<span th:text="${space.hasVacancy} ? '空席あり' : '満席'"
+					  th:class="'status ' + (${space.hasVacancy} ? 'status-vacant' : 'status-full')">
+				</span>
+			</div>
+	
+			<div class="space-item button-wrapper">
+				<form th:action="@{/conf}" method="get">
+					<input type="hidden" th:value="${space.id}" name="spaceId"/>
+					<button type="submit" th:disabled="${!space.hasVacancy}">予約</button>
+				</form>
+			</div>
+
+		</div>
+	</div>
+
+</body>
+</html>

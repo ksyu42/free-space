@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <title>予約完了</title>
+</head>
+<body>
+
+    <!-- ナビゲーション：ログインユーザー名 + メニュー -->
+    <div class="navigation">
+        <div class="nav-left">
+            <span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+        </div>
+        <div class="nav-right">
+            <a th:href="@{/mypage}" class="btn">マイページへ</a>
+            <a th:href="@{/logout}" class="btn">ログアウト</a>
+        </div>
+    </div>
+
+    <!-- メインメッセージ表示 -->
+    <div class="message-container">
+        <h1 class="message" th:text="${message}">予約完了</h1>
+        <a th:href="@{/space}" class="btn-back">← スペース一覧に戻る</a>
+    </div>
+
+</body>
+</html>

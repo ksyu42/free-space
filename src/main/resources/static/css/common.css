@@ -1,0 +1,108 @@
+/* 全体設定 */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+/* 見出し */
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    height: 150px;
+    background-color: #f08c4c;
+    color: white;
+    font-size: 28px;
+    line-height: 150px;
+    border-radius: 10px;
+}
+/*タイトル*/
+.title{
+	height: 110px;
+	line-height: 120px;
+	font-size: 40px;
+    text-align: center;
+    background-color: #fae7dc;
+    color: orange;
+}
+.navigation {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 10px 20px;
+}
+
+.nav-left {
+	width: 50%;
+	text-align: left;
+}
+
+
+.nav-right {
+	flex-shrink: 0;
+}
+
+.login-user {
+	font-weight: bold;
+	color: #444;
+}
+
+.btn {
+	background-color: #3498db;
+	color: #fff;
+	padding: 8px 16px;
+	border-radius: 5px;
+	text-decoration: none;
+	font-weight: bold;
+	margin-left: 10px;
+}
+
+.btn:hover {
+	background-color: #2a80b9;
+}
+/* 予約完了画面用 */
+.message-container {
+    text-align: center;
+    margin-top: 100px;
+}
+
+.message {
+    color: #f08c4c;
+    font-size: 28px;
+    margin-bottom: 40px;
+}
+
+.btn-back {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.btn-back:hover {
+    text-decoration: underline;
+}
+
+/* タイトルバー */
+.title-bar {
+    background-color: #f08c4c;
+    height: 100px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+/* タイトル文字だけシンプルに */
+.title-bar h1 {
+    color: white;
+    font-size: 28px;
+    margin: 0;
+    padding: 0;
+    background: none;        /* ← これ重要 */
+    border-radius: 0;        /* ← 角丸を解除 */
+}
+
+

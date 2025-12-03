@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <!-- エンコード -->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <!-- エンコード -->
+        <link rel="stylesheet" th:href="@{/css/signup.css}">
+        <link rel="stylesheet" th:href="@{/css/common.css}">
+    </head>
+
+    <body class="Bgc">
+        <!-- 画面最上部ログイン画面 -->
+        <div class="title" >
+        <p th:if="${id == 0}" th:insert="common_replace :: header_signup"></p>
+        <p th:if="${id >= 1}" th:insert="common_replace :: header_update"></p>
+        </div>
+        <!-- 戻るボタン -->
+        <form th:action="@{/master}">
+            <button class="btn bgc"  type="submit">戻る</button>
+        </form>
+        <!-- 入力要素・ボタン要素 -->
+        <form class="frm" method="get" th:action="@{/sign}" th:object="${sign}">
+            <div class="mainArea">
+                <!-- ID -->
+                <div class="put none" >
+                    <span class="text">ID</span><input type="text" th:field="*{id}">
+                </div>
+                <!-- 技術名 -->
+                <div class="put" >
+                    <span class="text">技術名</span><input type="text" th:field="*{skills}">
+                </div>
+                <!-- オプション -->
+                <div class="put">
+                    <span class="text">オプション</span><input type="text" th:field="*{option}">
+                </div>
+                <!-- エラー表示 バリデーション無しの場合-->
+                <!-- div th:each="error : ${errorlist}">
+                    <p class="err" th:text="'※'+ ${error}"/-->
+                <!-- エラー表示　バリデーション出力 -->
+                <div th:if="${validationError}" th:each="error : ${validationError}">
+        			<p class="valiErr" th:text="${error}"></p>
+                </div>
+			</div>
+			<!-- ログインボタン要素 -->
+			<button type="submit" class="lbtn" >保存</button>
+		</form>
+	</body>
+</html>

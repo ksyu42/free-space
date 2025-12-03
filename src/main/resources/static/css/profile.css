@@ -1,0 +1,64 @@
+/* フォーム全体 */
+.form-wrapper {
+    max-width: 500px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 各フォーム項目 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* ボタン部分 */
+.button-wrapper {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-orange {
+    background-color: #f08c4c;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-orange:hover {
+    background-color: #e67e22;
+}
+
+/* メッセージ表示 */
+.message {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.message.error {
+    color: red;
+}
+
+.message.success {
+    color: green;
+}

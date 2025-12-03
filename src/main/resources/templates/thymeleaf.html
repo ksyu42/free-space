@@ -1,0 +1,76 @@
+<!DOCTYPE HTML>
+
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+  	<!-- タイトル -->
+  	<title>練習画面</title>
+    <!-- エンコード -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+
+    <body>
+
+		<h1>テスト画面</h1>
+		
+		<!-- th:はサーバーで入れたtextを表示したいとき　サーバーで"${name}"に入れた値が出力される -->
+		<h1>th:text</h1>
+		<p th:text="${'氏名：' + name}"></p>
+		<p th:text="${test + name}"></p>
+		
+		
+		<!-- 算術演算子 -->
+		<h1>th:text(算術演算子)</h1>
+		<p th:text="${num}"></p>
+		<p th:text="${num * 5}"></p>
+		<p th:text="${num * num1}"></p>
+		
+		<!-- 条件演算子 -->
+		<h1>条件演算子</h1>
+		<p th:text="${num < 10 ? '小さい' : '大きい'}"></p>
+		<!-- 文字列の場合は等しいか、等しくないかのみの判別となる -->
+		<p th:text="${name == 10 ? '等しい' : '等しくない'}"></p>
+		
+		<!-- 条件式(if文を用いてその要素を表示するかしないかの制御を行う) -->
+		<!-- if文の設定値はbooleanになる -->
+		<h1>条件式(if文を用いてその要素を表示するかしないかの制御を行う)</h1>
+		<p id="b1" th:if="${bln}">テスト</p>
+		<p id="b2" th:text="${if}"></p>
+		<!-- 親要素のif文で表示しないとなると子要素も表示されなくなるので、注意 -->
+		<p id="b3" th:if="${number2 < 10}">テスト</p>
+		
+		<!-- swith文 -->
+		<h1>swith文</h1>
+		<div th:switch="${size}">
+			<p th:case="small">Sサイズ</p>
+			<p th:case="middle">Mサイズ</p>
+			<p th:case="large">Lサイズ</p>
+			<!-- "${size}"がどれにも当てはまらない場合 -->
+			<p th:case="*">オーダーメイド</p>
+		</div>
+		
+		<!-- 論理演算子 -->
+		<h1>論理演算子</h1>
+		<p th:if="${num < 10 && num > 1}">論理演算子</p>
+      	
+      	<!-- 繰り返し処理 -->
+      	<h1>繰り返し処理 (th:each)</h1>
+      	<ul th:each="fj : ${lst}">
+      	<li th:text="${fj}"></li>
+      	</ul>
+      	
+      	<h1>自作クラス</h1>
+      	<ul th:each="th : ${th_list}">
+      	<li th:text="${th.id}"></li>
+      	</ul>
+      	
+      	<h1>自作クラス:th:objectを使った呼び出し方</h1>
+      	<ul th:each="th : ${th_list}" th:object="${th}">
+      	<li th:text="*{id}"></li>
+      	</ul>
+      	
+      	<h1>インスタンスフィールドの取得</h1>
+      	<p th:text="${num5}"></p>	
+      	
+    </body>
+</html>
+

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <!-- エンコード -->
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <!-- エンコード -->
+        <link rel="stylesheet" th:href="@{/css/user.css}">
+        <link rel="stylesheet" th:href="@{/css/common.css}">
+   		<!-- JS -->
+		<script type="text/javascript" src="javascript/jquery-3.6.2.min.js"></script>
+		<script type="text/javascript" src="javascript/user.js"></script>
+    </head>
+
+    <body class="Bgc">
+    	<!-- タイトル -->
+        <div class="title" th:insert="common_replace :: header_user"></div>
+        
+         <!-- 戻るボタン -->
+        <form class="Btn bmr" th:action="@{/backTop1}">
+            <button class="btn bgc"  type="submit">戻る</button>
+        </form>
+        
+        <!-- 追加ボタン -->
+        <form class="Btn" method="post" th:action="@{/userInsert}">
+            <button class="btn bgc" type="submit">追加</button>
+        </form>
+        
+        <!-- 検索ボタン -->
+        <div class="Btn bmr" >
+            <button id="searchBtn" class="btn bgc" type="button">検索</button>
+        </div>
+        
+        <!-- 検索内容 -->
+		<div id="searchArea" class="put">
+			<div class="searchSubArea">
+			
+				<!-- 検索：氏名 -->
+				<div class="put">
+					<span>氏名</span>
+		    		<input id="searchName" name="search" class="searchform" type="search"  placeholder="名前の検索"/>
+		  		</div>
+		  		
+				<span class="text Check">言語</span>
+				<div class="check">
+					<label th:each="program : ${languageList}">
+						<input type="checkbox" class="checkbox" name="program" th:value="${program.id}" />
+						<span class="chinp" th:text="${program.language}"></span>
+					</label>
+				</div>
+				<!-- 検索ボタン(内) -->
+				<div class="Btn bmr" >
+				    <button id="resultBtn" class="btn btnC" >検索</button>
+				</div>
+				<!-- クリアボタン(内) -->
+				<form class="Btn " >
+				    <button class="btn btnC" type="submit">クリア</button>
+				</form>
+			</div>
+		</div>
+        
+       	<!-- テーブル -->
+       	<table class="table">
+          		<!-- テーブルヘッド -->
+            <thead>
+                <tr >
+                    <th class="first_header"><strong>削除</strong></th>
+                    <th class="second_header"><strong>氏名</strong></th>
+                    <th class="third_header"><strong>メールアドレス</strong></th>
+                    <th class="fourth_header"><strong>言語</strong></th>
+                    
+                </tr>
+            </thead>
+            <!-- テーブルボディ -->
+            <tbody>
+                <tr th:each="user : ${userList}" th:object="${user}">
+                    <td class="first_data"> <a class="ccl" th:href="@{/userDelete(id=*{id})}">×</a></td>
+                    <td class="second_data"><a th:href="@{/userUpdate(id=*{id})}" th:text="*{name}"></a></td>
+					<td class="third_data" th:text="*{mail}" />
+					<td class="fourth_data" th:text="*{language}" ></td> 
+                	<!-- <td class="fourth_data"><span class="language" th:text="*{language}"><span class="languageValue" value="2"></span ></span></td> -->
+                	
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

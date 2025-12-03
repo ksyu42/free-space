@@ -1,0 +1,100 @@
+
+.navigation {
+    margin: 10px 20px;
+    text-align: right;
+}
+
+.navigation .btn {
+    background-color: #3498db;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.navigation .btn:hover {
+    background-color: #2a80b9;
+}
+
+/* ログイン中ユーザー名表示 */
+.navigation .login-user {
+    margin-right: 15px;
+    font-weight: bold;
+    color: #444;
+}
+
+
+/* 予約カードラッパー */
+.space-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* 予約カード */
+.space-card {
+    background-color: #fff;
+    border: 2px solid #f08c4c;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    padding: 20px;
+    transition: transform 0.2s;
+}
+
+.space-card:hover {
+    transform: scale(1.03);
+}
+
+/* バッジ */
+.badge-wrapper {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.badge {
+    background-color: #f08c4c;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* スペースの各項目 */
+.space-item {
+    margin-bottom: 12px;
+}
+
+.space-item strong {
+    display: inline-block;
+    width: 130px;
+    color: #f08c4c;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.space-item span {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.space-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    display: block;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.space-detail {
+    font-size: 1rem;
+    color: #555;
+}

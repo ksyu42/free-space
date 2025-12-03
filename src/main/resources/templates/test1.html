@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<!-- タイトル -->
+	    <title>Test1画面</title>
+	    <!-- エンコード -->
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+	
+	<body>
+		<!-- テスト出力(Modelに設定した"name"の値を出力) -->
+	    <p th:text="'こんにちは, ' + ${name} + 'さん!'" />
+	    
+	    <!-- フォーム -->
+	    <form method="post" th:action="@{/input_1}">
+	    	<!-- 入力エリア -->
+	    	<fieldset>
+	    		<!-- 入力エリア題名 -->
+	    		<figure>入力1</figure>
+	    		
+			    <!-- 入力 -->
+			    <input type="text" name="input_1" placeholder="入力"/>
+			    
+				<!-- テスト出力(Modelに設定した"name"の値を出力) -->
+			    <p th:text="'出力:' + ${disp_1}" />
+		    
+		    	<button type="submit">リクエスト</button>
+		    </fieldset>
+		</form>
+		
+	    <!-- フォーム -->
+	    <form method="get" th:action="@{/input_2}">
+	    	<!-- 入力エリア -->
+	    	<fieldset>
+	    		<!-- 入力エリア題名 -->
+	    		<figure>入力2</figure>
+	    		
+			    <!-- 入力 -->
+			    <input type="text" name="input_2" placeholder="入力"/>
+			    
+				<!-- テスト出力(Modelに設定した"name"の値を出力) -->
+			    <p th:text="'出力:' + ${disp_2}" />
+		    
+		    	<button type="submit">リクエスト</button>
+		    </fieldset>
+	    </form>
+	</body>
+</html>

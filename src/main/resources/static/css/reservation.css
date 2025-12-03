@@ -1,0 +1,122 @@
+/* 全体設定 */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+/* 見出し */
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    height: 150px;
+    background-color: #f08c4c;
+    color: white;
+    font-size: 28px;
+    line-height: 150px;
+    border-radius: 10px;
+}
+
+/* カード全体のラッパー */
+.space-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* スペースカード（サイズ拡大） */
+.space-card {
+    background-color: #fff;
+    border: 2px solid #f08c4c;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 500px; /* ← 拡大 */
+    padding: 30px; /* ← 余白も拡大 */
+    transition: transform 0.2s;
+}
+
+.space-card:hover {
+    transform: scale(1.03);
+}
+
+/* スペースの各項目 */
+.space-item {
+    margin-bottom: 12px;
+}
+
+.space-item strong {
+    display: inline-block;
+    width: 130px;
+    color: #f08c4c;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.space-item span {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 横並び表示 */
+.space-inline {
+    display: flex;
+    align-items: center;
+}
+
+/* プルダウン（select）のスタイル */
+.space-item select,
+.space-inline select {
+    flex: 1; /* ← 横幅いっぱい */
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #f08c4c;
+    border-radius: 5px;
+    background-color: white;
+    color: #333;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23f08c4c" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+    margin-left: 10px;
+}
+
+.space-item select:hover {
+    border-color: #d97639;
+}
+
+/* ボタンのデザイン */
+button {
+    background-color: #f08c4c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #d97639;
+}
+
+/* ボタンを中央に配置 */
+.button-wrapper {
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* 戻るリンクスタイル */
+.space-item a {
+    color: #f08c4c;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.space-item a:hover {
+    text-decoration: underline;
+}

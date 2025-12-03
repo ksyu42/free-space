@@ -1,0 +1,65 @@
+body {
+	font-family: 'Arial', sans-serif;
+	background-color: #f9f9f9;
+	margin: 0;
+	padding: 20px;
+}
+
+/* ナビゲーション */
+.navigation {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 10px 20px;
+}
+
+.nav-left {
+	flex: 1;
+}
+
+.nav-right {
+	flex-shrink: 0;
+}
+
+.login-user {
+	font-weight: bold;
+	color: #444;
+}
+
+/* ボタン */
+.btn {
+	background-color: #3498db;
+	color: #fff;
+	padding: 8px 16px;
+	border-radius: 5px;
+	text-decoration: none;
+	font-weight: bold;
+	margin-left: 10px;
+}
+
+.btn:hover {
+	background-color: #2a80b9;
+}
+
+/* メインメッセージ */
+.container {
+	text-align: center;
+	margin-top: 100px;
+}
+
+.message {
+	color: #f08c4c;
+	font-size: 28px;
+	margin-bottom: 40px;
+}
+
+.btn-back {
+	color: #3498db;
+	text-decoration: none;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.btn-back:hover {
+	text-decoration: underline;
+}
