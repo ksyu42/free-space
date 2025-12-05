@@ -125,17 +125,20 @@ public class LoginController {
 
         // 各予約に対して、スペース情報と時間帯情報を付加する
         for (Reservation r : reservationList) {
-            // スペース情報を取得（スペース名・場所）
-            Space space = spaceRep.findById(r.getSpaceId()).orElse(null);
-            // 時間帯情報を取得（時間）
+
+            // スペース情報取得（スペース名・場所）
+            Space space = spaceRep.findById(Long.valueOf(r.getSpaceId())).orElse(null);
+
+            // 時間帯情報取得（時間）
             SpaceTime time = spaceTimeRep.findById(r.getSpaceTimesId()).orElse(null);
 
-            // スペース情報が存在する場合、予約に情報をセット
+            // スペース情報が存在する場合
             if (space != null) {
                 r.setSpaceName(space.getName());
                 r.setLocation(space.getLocation());
             }
-            // 時間情報が存在する場合、予約に時間をセット
+
+            // 時間帯情報が存在する場合
             if (time != null) {
                 r.setTime(time.getTime());
             }

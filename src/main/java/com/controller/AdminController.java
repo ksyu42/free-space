@@ -128,8 +128,8 @@ public class AdminController {
 
                 // 該当する座席を1つずつチェック
                 for (Seat seat : seatList) {
-                    boolean sameSpace = seat.getSpaceId() == space.getId();
-                    boolean sameTime = seat.getSpaceTimesId() == time.getSpaceTimesId();
+                	boolean sameSpace = seat.getSpaceId() == space.getId().intValue();
+                	boolean sameTime  = seat.getSpaceTimesId() == time.getSpaceTimesId();
                     if (sameSpace && sameTime) {
                         totalSeats += seat.getSeatCount();
                     }
@@ -140,7 +140,8 @@ public class AdminController {
                 timeSeatList.add(dto);
             }
             // スペースIDごとのマップに追加
-            spaceTimeMap.put(space.getId(), timeSeatList);
+            spaceTimeMap.put(space.getId().intValue(), timeSeatList);
+
         }
 
         // 画面へデータを渡す
@@ -226,7 +227,7 @@ public class AdminController {
         seatRep.deleteBySpaceId(id);
 
         // SpaceTimeは共通時間帯として残す
-        spaceRep.deleteById(id);
+        spaceRep.deleteById(Long.valueOf(id));
 
         return "redirect:/admin/space";
     }

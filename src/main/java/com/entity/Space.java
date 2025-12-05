@@ -8,16 +8,21 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-/*import jakarta.persistence.*;*/
 import lombok.Data;
 
 @Entity
 @Table(name = "spaces")
 @Data
 public class Space {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    // Lombok が動作していない場合に備えて、明示的に getter を追加
+    public Long getId() {
+        return this.id;
+    }
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -37,8 +42,22 @@ public class Space {
     @Column(name = "admin_id", nullable = false)
     private Long adminId;
 
+    // 予約画面で使用する表示用(開始〜終了)
     @Transient
     private String availableTime;
+
+    // ⭐ 空席の有無（追加）
+    @Transient
+    private boolean hasVacancy;
+
+    // ⭐ getter / setter（Lombok に無いので自作）
+    public boolean isHasVacancy() {
+        return hasVacancy;
+    }
+
+    public void setHasVacancy(boolean hasVacancy) {
+        this.hasVacancy = hasVacancy;
+    }
 
     public String getAvailableTime() {
         if (this.availableTime != null && !this.availableTime.isBlank()) {
