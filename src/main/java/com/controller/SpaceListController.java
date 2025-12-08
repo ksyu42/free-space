@@ -33,12 +33,12 @@ public class SpaceListController {
     @Autowired
     private SeatRepository seatRep;
     @Autowired
-    private SpaceTimeRepository spaceTimeRep;
+    private SpaceTimeRepository timeRep;
     @Autowired
     private ReservationRepository reservationRep;
+
     @Autowired
     private AvailableSeatService availableSeatService;
-
 
     /**
      * スペース一覧表示
@@ -48,95 +48,62 @@ public class SpaceListController {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         Admin adminUser = (Admin) session.getAttribute("adminUser");
-
-        // ユーザーまたは管理者のどちらもログインしていない場合はログインページへ
         if (loginUser == null && adminUser == null) {
             return "redirect:/login";
         }
 
-        List<Space> spaceTable = spaceRep.findAll();
-        List<Seat> seatTable = seatRep.findAll();
-        List<SpaceTime> timeList = spaceTimeRep.findAll();
+        // 全スペース取得
+        List<Space> spaceList = spaceRep.findAll();
 
-        // 各スペースの空席有無をチェック
-        for (Space space : spaceTable) {
-
+        // 残席があるスペースかどうかだけ判定（席の数はサービスで計算）
+        List<SpaceTime> timeList = timeRep.findAll();
+        for (Space space : spaceList) {
             boolean hasVacancy = false;
 
-            for (SpaceTime time : timeList) {
-
-                int totalSeat = 0;
-
-                for (Seat seat : seatTable) {
-
-                    // Space.id は Long のため int に変換して比較
-                    boolean sameSpace = (seat.getSpaceId() == space.getId().intValue());
-                    boolean sameTime = (seat.getSpaceTimesId() == time.getSpaceTimesId());
-
-                    if (sameSpace && sameTime) {
-                        totalSeat += seat.getSeatCount();
-                    }
-                }
-
-                // 任意の時間帯で 1つでも seat > 0 があれば空席あり
-                if (totalSeat > 0) {
+            for (SpaceTime t : timeList) {
+                int vacancy = availableSeatService.getAvailableSeats(space.getId().intValue(), t.getSpaceTimesId());
+                if (vacancy > 0) {
                     hasVacancy = true;
                     break;
                 }
             }
-
             space.setHasVacancy(hasVacancy);
         }
 
-        model.addAttribute("spaceList", spaceTable);
-
+        model.addAttribute("spaceList", spaceList);
         return "space";
     }
 
     /**
-     * 予約確認画面（選択スペースとその時間帯を表示）
+     * 予約確認画面
      */
     @RequestMapping("/conf")
-    public String reserve(Model model,
-                          @RequestParam("spaceId") Integer spaceId,
-                          HttpSession session) {
+    public String reserve(Model model, @RequestParam("spaceId") Integer spaceId, HttpSession session) {
 
         Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
             return "redirect:/login";
         }
 
-        // 選択されたスペースを取得
-        Space selectedSpace = spaceRep.findById(spaceId.longValue()).orElse(null);
-
-        // 無効なスペースIDの場合、一覧へリダイレクト
+        Space selectedSpace = spaceRep.findById(Long.valueOf(spaceId)).orElse(null);
         if (selectedSpace == null) {
-            return "redirect:/space"; // 一覧画面
+            return "redirect:/space";
         }
 
-        // 全時間帯データ取得
-        List<SpaceTime> spaceTimeList = spaceTimeRep.findAll();
+        List<SpaceTime> timeList = timeRep.findAll();
 
-        // 各時間帯について空席数を計算してセット
-        for (SpaceTime time : spaceTimeList) {
-
-            // ★ 新ロジック：空席数をサービスで算出
-            int availableSeats = availableSeatService.getAvailableSeats(
-                    spaceId,
-                    time.getSpaceTimesId()
-            );
-
-            time.setSeatCount(availableSeats);      // 空席数
-            time.setHasVacancy(availableSeats > 0); // 空席あり判定
+        // 残席数をサービスから計算してセット
+        for (SpaceTime t : timeList) {
+            int available = availableSeatService.getAvailableSeats(spaceId, t.getSpaceTimesId());
+            t.setSeatCount(available);
+            t.setHasVacancy(available > 0);
         }
 
-        // 選択スペースを View 用にリスト化（既存ロジック維持）
         model.addAttribute("selectItems", Collections.singletonList(selectedSpace));
-        model.addAttribute("spaceTimeList", spaceTimeList);
+        model.addAttribute("spaceTimeList", timeList);
 
-        return "reservation"; // 予約画面
+        return "reservation";
     }
-
 
     /**
      * 予約完了処理
@@ -145,7 +112,7 @@ public class SpaceListController {
     @PostMapping("/reserve/complete")
     public String reserveComplete(
             @RequestParam("spaceId") int spaceId,
-            @RequestParam("spaceTimesId") int spaceTimesId,
+            @RequestParam("spaceTimesId") int timeId,
             HttpSession session,
             Model model) {
 
@@ -154,30 +121,19 @@ public class SpaceListController {
             return "redirect:/login";
         }
 
-        int userId = loginUser.getID();
-
-        // 予約を保存
-        Reservation reservation = new Reservation();
-        reservation.setSpaceId(spaceId);
-        reservation.setSpaceTimesId(spaceTimesId);
-        reservation.setUserId(userId);
-        reservationRep.save(reservation);
-
-        // 残席更新
-        Seat seat = seatRep.findBySpaceIdAndSpaceTimesId(spaceId, spaceTimesId);
-
-        if (seat == null) {
-            model.addAttribute("message", "座席情報が存在しません。");
-            return "reserve_comp";
-        }
-
-        if (seat.getSeatCount() <= 0) {
+        // 残席数チェック
+        int available = availableSeatService.getAvailableSeats(spaceId, timeId);
+        if (available <= 0) {
             model.addAttribute("message", "満席のため予約できませんでした。");
             return "reserve_comp";
         }
 
-        seat.setSeatCount(seat.getSeatCount() - 1);
-        seatRep.save(seat);
+        // 予約登録
+        Reservation r = new Reservation();
+        r.setSpaceId(spaceId);
+        r.setSpaceTimesId(timeId);
+        r.setUserId(loginUser.getID());
+        reservationRep.save(r);
 
         model.addAttribute("message", "予約が完了しました。");
         return "reserve_comp";

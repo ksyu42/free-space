@@ -48,7 +48,7 @@ public class AdminController {
      */
     @GetMapping("/login")
     public String adminLoginForm() {
-        return "admin_login";  // templates/admin_login.html
+        return "admin/login";  // templates/admin_login.html
     }
 
     /**
@@ -65,7 +65,7 @@ public class AdminController {
         // 管理者認証
         if (!adminRep.existsByAdminNumberAndPassword(adminNumber, password)) {
             model.addAttribute("error", "※ 管理番号またはパスワードが正しくありません。");
-            return "admin_login";
+            return "admin/login";
         }
 
         // セッションに管理者情報を保存
@@ -148,7 +148,7 @@ public class AdminController {
         model.addAttribute("spaceList", spaceList);
         model.addAttribute("spaceTimeMap", spaceTimeMap);
 
-        return "admin_space";
+        return "admin/space_list";
     }
     
     /*
@@ -196,7 +196,7 @@ public class AdminController {
 
     /*
      * 新規スペースの作成
-     * スペース一覧(admin_space.html)_スペース作成ボタン
+     * スペース一覧(admin/space_list.html)_スペース作成ボタン
      * 
      * 
      */
@@ -219,7 +219,7 @@ public class AdminController {
     /**
      * スペース削除処理
      * 該当スペースの座席（Seat）と時間帯（SpaceTime）も合わせて削除
-     * 遷移元：admin_space.html のスペース削除フォーム
+     * 遷移元：admin/space_list.html のスペース削除フォーム
      */
     @PostMapping("/space/delete/{id}")
     public String deleteSpace(@PathVariable int id) {

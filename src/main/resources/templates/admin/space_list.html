@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>スペース一覧（管理者）</title>
+
+    <!-- 共通CSS -->
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <!-- 管理者専用CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin_space.css}">
+
+    <!-- 座席増減JavaScript -->
+    <script th:src="@{/javascript/updateSeat.js}" defer></script>
+</head>
+
+<body>
+
+<!-- 🔗 ナビゲーション -->
+<div class="navigation">
+    <div class="nav-right">
+        <a th:href="@{/admin/dashboard}" class="btn">トップ</a>
+        <a th:href="@{/logout}" class="btn">ログアウト</a>
+    </div>
+</div>
+
+<!-- タイトル -->
+<div class="title-bar">
+    <h1>スペース一覧（管理者）</h1>
+</div>
+
+<!-- 新規スペース登録ボタン -->
+<div class="action-bar">
+    <a th:href="@{/admin/space/new}" class="btn btn-primary">＋ スペースを作成</a>
+</div>
+
+<!-- スペース一覧カード -->
+<div class="space-wrapper" th:each="space : ${spaceList}">
+
+    <div class="space-card">
+
+        <!-- スペース名＋場所 -->
+        <div class="space-header">
+            <h2 th:text="${space.name}"></h2>
+            <span class="location" th:text="${space.location}"></span>
+        </div>
+
+        <!-- 空席状況 -->
+        <div class="vacancy-status">
+            <span th:if="${space.hasVacancy}" class="vacancy-yes">空席あり</span>
+            <span th:if="${!space.hasVacancy}" class="vacancy-no">満席</span>
+        </div>
+
+        <!-- スペース削除ボタン -->
+        <form th:action="@{/admin/space/delete/{id}(id=${space.id})}"
+              method="post"
+              onsubmit="return confirm('このスペースを削除しますか？');">
+            <button type="submit" class="btn btn-danger small-btn">削除</button>
+        </form>
+
+        <hr>
+
+        <!-- 時間帯ごとの座席数テーブル -->
+        <table class="seat-table">
+            <thead>
+                <tr>
+                    <th>時間帯</th>
+                    <th>座席数</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr th:each="ts, iter : ${spaceTimeMap[space.id]}">
+
+                    <td th:text="${ts.time}"></td>
+
+                    <!-- 表示用の座席数 -->
+                    <td th:id="'seatCount-' + ${space.id} + '-' + ${iter.index}"
+                        th:text="${ts.seatCount}"></td>
+
+                    <td>
+                        <button type="button"
+                            class="btn btn-small btn-plus"
+                            th:attr="onclick='changeSeat(' + ${space.id} + ',' + ${iter.index} + ',1)'">＋</button>
+
+                        <button type="button"
+                            class="btn btn-small btn-minus"
+                            th:attr="onclick='changeSeat(' + ${space.id} + ',' + ${iter.index} + ',-1)'">－</button>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>

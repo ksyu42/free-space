@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.entity.Admin;
 import com.entity.Space;
+import com.entity.SpaceTime;
+import com.repository.SpaceTimeRepository;
+import com.service.AvailableSeatService;
 import com.service.SpaceService;
 
 @Controller
@@ -24,6 +27,13 @@ public class SpaceController {
     // スペース情報を扱うサービス
     @Autowired
     private SpaceService spaceService;
+    
+    @Autowired
+    private AvailableSeatService availableSeatService;
+
+    @Autowired
+    private SpaceTimeRepository spaceTimeRepository;
+
 
     /**
      * 管理者が登録したスペース一覧を表示する
@@ -31,23 +41,41 @@ public class SpaceController {
     @GetMapping
     public String listSpaces(Model model, HttpSession session) {
 
-        // セッションから管理者情報を取得
         Admin adminUser = (Admin) session.getAttribute("adminUser");
-
-        // 未ログインなら管理者ログイン画面へリダイレクト
         if (adminUser == null) {
             return "redirect:/admin/login";
         }
 
-        // Admin の ID は int → Long 変換
         Long adminId = (long) adminUser.getID();
-
-        // 管理者に紐づくスペース一覧取得
         List<Space> spaces = spaceService.getSpacesByAdmin(adminId);
+
+        // 全時間帯を取得
+        List<SpaceTime> timeList = spaceTimeRepository.findAll();
+
+        // 各スペースの空席有無を判定
+        for (Space space : spaces) {
+
+            boolean hasVacancy = false;
+
+            for (SpaceTime time : timeList) {
+                int available = availableSeatService.getAvailableSeats(
+                        space.getId().intValue(),
+                        time.getSpaceTimesId()
+                );
+
+                if (available > 0) {
+                    hasVacancy = true;
+                    break;
+                }
+            }
+
+            space.setHasVacancy(hasVacancy); // Space entity に追加した項目
+        }
 
         model.addAttribute("spaces", spaces);
         return "admin/space_list";
     }
+
 
     /**
      * スペース新規登録画面表示

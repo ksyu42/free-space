@@ -1,3 +1,8 @@
+/* ============================
+   ユーザー側 スペース一覧ページ
+   ============================ */
+
+/* 全体背景・フォント */
 body {
     background-color: #f9f9f9;
     font-family: Arial, sans-serif;
@@ -20,7 +25,7 @@ body {
     margin: 0;
 }
 
-/* スペース表示領域 */
+/* スペースの外枠 */
 .space-container {
     max-width: 800px;
     margin: 30px auto;
@@ -30,7 +35,7 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* スペース情報の各ブロック */
+/* スペース1件の表示領域 */
 .space-item {
     border-bottom: 1px solid #ccc;
     padding: 15px 0;
@@ -40,25 +45,45 @@ body {
     border-bottom: none;
 }
 
+/* スペース名 */
 .space-name {
     font-weight: bold;
     font-size: 18px;
 }
 
+/* 場所名 */
 .space-location {
     color: #666;
     margin-top: 5px;
 }
 
+/* 空席ステータス */
 .space-status {
     margin-top: 10px;
     font-weight: bold;
+    font-size: 14px;
 }
 
 .space-status.vacant {
-    color: green;
+    color: #2ecc71;
 }
 
 .space-status.full {
-    color: red;
+    color: #e74c3c;
+}
+
+/* 予約ボタン */
+.reserve-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 8px 14px;
+    background-color: #3498db;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.2s ease-in-out;
+}
+
+.reserve-btn:hover {
+    background-color: #2980b9;
 }
