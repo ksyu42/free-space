@@ -9,6 +9,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -128,14 +129,65 @@ public class SpaceListController {
             return "reserve_comp";
         }
 
-        // 予約登録
+        // 予約登録（申請中で登録）
         Reservation r = new Reservation();
         r.setSpaceId(spaceId);
         r.setSpaceTimesId(timeId);
         r.setUserId(loginUser.getID());
+        r.setStatus("PENDING");
         reservationRep.save(r);
+
 
         model.addAttribute("message", "予約が完了しました。");
         return "reserve_comp";
     }
+    
+    /**
+     * 予約承認処理
+     */
+    @PostMapping("/reservations/{id}/approve")
+    public String approveReservation(@PathVariable int id, HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) return "redirect:/admin/login";
+
+        Reservation r = reservationRep.findById(id).orElse(null);
+        if (r == null) return "redirect:/admin/reservations";
+
+        // この予約のspaceが自分のものか確認
+        Space space = spaceRep.findById((long) r.getSpaceId()).orElse(null);
+        if (space == null || !space.getAdminId().equals((long) adminUser.getID())) {
+            return "redirect:/admin/reservations";
+        }
+
+        r.setStatus("APPROVED");
+        reservationRep.save(r);
+
+        return "redirect:/admin/reservations";
+    }
+    
+    /**
+     * 予約却下処理
+     */
+    @PostMapping("/reservations/{id}/reject")
+    public String rejectReservation(@PathVariable int id, HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) return "redirect:/admin/login";
+
+        Reservation r = reservationRep.findById(id).orElse(null);
+        if (r == null) return "redirect:/admin/reservations";
+
+        Space space = spaceRep.findById((long) r.getSpaceId()).orElse(null);
+        if (space == null || !space.getAdminId().equals((long) adminUser.getID())) {
+            return "redirect:/admin/reservations";
+        }
+
+        r.setStatus("REJECTED");
+        reservationRep.save(r);
+
+        return "redirect:/admin/reservations";
+    }
+
+
 }

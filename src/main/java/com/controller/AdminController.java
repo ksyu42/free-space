@@ -118,44 +118,56 @@ public class AdminController {
         List<Space> mySpaces = spaceRep.findByAdminId(adminId);
 
         if (mySpaces.isEmpty()) {
-            model.addAttribute("reservationList", new ArrayList<Reservation>());
+            model.addAttribute("reservationList", new ArrayList<>());
             return "admin/admin_reservations";
         }
 
-        Map<Integer, Space> spaceMap = new HashMap<>();
+        // 管理者のスペースID一覧
+        List<Integer> mySpaceIds = new ArrayList<>();
         for (Space s : mySpaces) {
-            if (s.getId() != null) {
-                spaceMap.put(s.getId().intValue(), s);
-            }
+            mySpaceIds.add(s.getId().intValue());
         }
 
-        List<SpaceTime> timeList = spaceTimeRep.findAll();
-        Map<Integer, SpaceTime> timeMap = new HashMap<>();
-        for (SpaceTime t : timeList) {
-            timeMap.put(t.getSpaceTimesId(), t);
-        }
-
-        List<Login> userList = loginRep.findAll();
-        Map<Integer, Login> userMap = new HashMap<>();
-        for (Login u : userList) {
-            userMap.put(u.getID(), u);
-        }
-
+        // ★ いったん全予約を取得
         List<Reservation> all = reservationRep.findAll();
         List<Reservation> result = new ArrayList<>();
 
-        for (Reservation r : all) {
-            Space space = spaceMap.get(r.getSpaceId());
-            if (space == null) continue;
+        Map<Integer, SpaceTime> timeMap = new HashMap<>();
+        for (SpaceTime t : spaceTimeRep.findAll()) {
+            timeMap.put(t.getSpaceTimesId(), t);
+        }
 
-            r.setSpaceName(space.getName());
-            r.setLocation(space.getLocation());
+        Map<Integer, Login> userMap = new HashMap<>();
+        for (Login u : loginRep.findAll()) {
+            userMap.put(u.getID(), u);
+        }
+
+        for (Reservation r : all) {
+
+            // 管理者のスペースかどうかをJava側で判定
+            if (!mySpaceIds.contains(r.getSpaceId())) {
+                continue;
+            }
+
+            Space space = mySpaces.stream()
+                    .filter(s -> s.getId().intValue() == r.getSpaceId())
+                    .findFirst()
+                    .orElse(null);
+
+            if (space != null) {
+                r.setSpaceName(space.getName());
+                r.setLocation(space.getLocation());
+            }
 
             SpaceTime time = timeMap.get(r.getSpaceTimesId());
-            if (time != null) r.setTime(time.getTime());
+            if (time != null) {
+                r.setTime(time.getTime());
+            }
 
             Login user = userMap.get(r.getUserId());
-            if (user != null) r.setUserName(user.getName());
+            if (user != null) {
+                r.setUserName(user.getName());
+            }
 
             result.add(r);
         }
@@ -163,6 +175,8 @@ public class AdminController {
         model.addAttribute("reservationList", result);
         return "admin/admin_reservations";
     }
+
+
 
     /* ===============================
      * ◆ スペース一覧（座席数表示）
@@ -255,9 +269,10 @@ public class AdminController {
             HttpSession session) {
 
         Admin adminUser = (Admin) session.getAttribute("adminUser");
-        if (adminUser == null) {
+        if (adminUser == null || adminUser.getID() == 0) {
             return "redirect:/admin/login";
         }
+
 
         // --- ① Space を保存 ---
         Space space = new Space();
@@ -300,9 +315,63 @@ public class AdminController {
     @PostMapping("/space/delete/{id}")
     public String deleteSpace(@PathVariable int id) {
 
+        // スペースに紐づく座席データを削除
         seatRep.deleteBySpaceId(id);
+        // スペース本体を削除
         spaceRep.deleteById((long) id);
 
-        return "redirect:/admin/space_list";
+        // スペース一覧画面へ戻す
+        return "redirect:/admin/space";
     }
+    
+    /* ===============================
+     * ◆ 予約承認
+     * =============================== */
+    @PostMapping("/reservations/{id}/approve")
+    public String approveReservation(
+            @PathVariable int id,
+            HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) {
+            return "redirect:/admin/login";
+        }
+
+        Reservation reservation = reservationRep.findById(id).orElse(null);
+        if (reservation == null) {
+            return "redirect:/admin/reservations";
+        }
+
+        reservation.setStatus("APPROVED");
+        reservationRep.save(reservation);
+
+        return "redirect:/admin/reservations";
+    }
+
+
+    /* ===============================
+     * ◆ 予約却下
+     * =============================== */
+    @PostMapping("/reservations/{id}/reject")
+    public String rejectReservation(
+            @PathVariable int id,
+            HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) {
+            return "redirect:/admin/login";
+        }
+
+        Reservation reservation = reservationRep.findById(id).orElse(null);
+        if (reservation == null) {
+            return "redirect:/admin/reservations";
+        }
+
+        reservation.setStatus("REJECTED");
+        reservationRep.save(reservation);
+
+        return "redirect:/admin/reservations";
+    }
+
+
 }

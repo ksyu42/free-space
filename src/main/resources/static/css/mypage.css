@@ -98,3 +98,15 @@
     font-size: 1rem;
     color: #555;
 }
+.badge-pending {
+    background-color: #f0ad4e; /* オレンジ */
+}
+
+.badge-approved {
+    background-color: #5cb85c; /* グリーン */
+}
+
+.badge-rejected {
+    background-color: #d9534f; /* レッド */
+}
+

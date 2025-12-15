@@ -30,6 +30,9 @@ public class Reservation {
 
     @Column(name = "reservation_day")
     private LocalDate reservationDay;
+    
+    @Column(name = "status", nullable = false)
+    private String status = "PENDING"; // PENDING / APPROVED / REJECTED
 
     @PrePersist
     public void onPrePersist() {
@@ -77,4 +80,8 @@ public class Reservation {
 
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
+    
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
 }

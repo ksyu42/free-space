@@ -13,6 +13,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 	//空席数計算のために追加
     long countBySpaceIdAndSpaceTimesId(int spaceId, int spaceTimesId);
     
+    //管理者側で「申請中だけ抽出」
+    List<Reservation> findByStatus(String status);
+
+	List<Reservation> findBySpaceIdIn(List<Integer> mySpaceIds);
+
+    
     
 
 }

@@ -1,48 +1,78 @@
-body {
-    background-color: #f4f4f4;
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-}
+/* ==============================
+   管理者フォーム画面 共通
+   ============================== */
 
-.title-bar {
-    background-color: #f08c4c;
-    height: 100px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.title-bar h1 {
-    color: white;
-    font-size: 30px;
-    margin: 0;
-}
-
-/* メニューコンテナ */
-.admin-menu {
+/* フォーム全体の枠 */
+.admin-form-container {
     max-width: 600px;
-    margin: 80px auto;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-    padding: 20px;
-}
-
-/* ボタンスタイル */
-.admin-btn {
-    background-color: #f08c4c;
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-    padding: 20px;
-    text-align: center;
-    text-decoration: none;
+    margin: 40px auto;
+    background-color: #ffffff;
+    padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease;
 }
 
-.admin-btn:hover {
+/* 見出し */
+.admin-form-container h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 22px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+/* 入力項目 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* ボタンエリア */
+.form-button-area {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+/* 登録ボタン */
+.form-submit-btn {
+    background-color: #f08c4c;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.form-submit-btn:hover {
     background-color: #e67e22;
+}
+
+/* 戻るリンク */
+.form-back-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    background-color: #ddd;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.form-back-link:hover {
+    background-color: #ccc;
 }

@@ -1,32 +1,52 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>スペース登録</title>
+    <meta charset="UTF-8">
+    <title>スペース新規登録</title>
+
+    <!-- 管理者共通CSS -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
+
 <body>
 
-<h2>スペース新規登録</h2>
+<!-- タイトルバー（既存デザイン流用） -->
+<div class="title-bar">
+    <h1>管理者画面</h1>
+</div>
 
-<form th:action="@{/admin/space/save}" method="post">
+<div class="admin-form-container">
+    <h2>スペース新規登録</h2>
 
-  <label>スペース名:</label>
-  <input type="text" name="name" required><br>
+    <form th:action="@{/admin/space/save}" method="post">
 
-  <label>場所:</label>
-  <input type="text" name="location" required><br>
+        <div class="form-group">
+            <label for="name">スペース名</label>
+            <input type="text" id="name" name="name" required>
+        </div>
 
-  <label>開始時間:</label>
-  <input type="text" name="availableFrom" required><br>
+        <div class="form-group">
+            <label for="location">場所</label>
+            <input type="text" id="location" name="location" required>
+        </div>
 
-  <label>終了時間:</label>
-  <input type="text" name="availableTo" required><br>
+        <div class="form-group">
+            <label for="availableFrom">開始時間</label>
+            <input type="time" id="availableFrom" name="availableFrom" required>
+        </div>
 
-  <button type="submit">登録</button>
+        <div class="form-group">
+            <label for="availableTo">終了時間</label>
+            <input type="time" id="availableTo" name="availableTo" required>
+        </div>
 
-</form>
+        <div class="form-button-area">
+            <button type="submit" class="form-submit-btn">登録</button>
+            <a th:href="@{/admin/space}" class="form-back-link">戻る</a>
+        </div>
 
-<a th:href="@{/admin/space}">← 戻る</a>
+    </form>
+</div>
 
 </body>
 </html>

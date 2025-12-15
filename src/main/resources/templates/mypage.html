@@ -26,11 +26,25 @@
     <div class="space-container">
         <div class="space-card" th:each="reservation : ${reservationList}">
 
-            <!-- バッジ：予約済み -->
             <div class="badge-wrapper">
-                <span class="badge">予約済み</span>
-            </div>
-
+			    <!-- 申請中 -->
+			    <span class="badge badge-pending"
+			          th:if="${reservation.status == 'PENDING'}">
+			        申請中
+			    </span>
+			
+			    <!-- 承認済み -->
+			    <span class="badge badge-approved"
+			          th:if="${reservation.status == 'APPROVED'}">
+			        承認済み
+			    </span>
+			
+			    <!-- 却下 -->
+			    <span class="badge badge-rejected"
+			          th:if="${reservation.status == 'REJECTED'}">
+			        却下
+			    </span>
+			</div>
             <div class="space-item">
                 <strong>スペース名：</strong>
                 <span class="space-name" th:text="${reservation.spaceName}"></span>
@@ -50,7 +64,10 @@
                 <strong>時間：</strong>
                 <span class="space-detail" th:text="${reservation.time}"></span>
             </div>
-
+            <div class="space-item">
+			    <strong>予約状況：</strong>
+			    <span class="space-detail" th:text="${reservation.status}"></span>
+			</div>
         </div>
     </div>
 
