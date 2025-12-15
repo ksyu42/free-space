@@ -18,11 +18,6 @@ public class Space {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    // Lombok が動作していない場合に備えて、明示的に getter を追加
-    public Long getId() {
-        return this.id;
-    }
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -36,41 +31,30 @@ public class Space {
     @Column(name = "available_to", nullable = false)
     private String availableTo;
 
-    @Column(name = "seat_count", nullable = false)
-    private Integer seatCount;
-
     @Column(name = "admin_id", nullable = false)
     private Long adminId;
 
-    // 予約画面で使用する表示用(開始〜終了)
+    // ------- 以下は @Transient のままで OK -------
+
     @Transient
     private String availableTime;
 
-    // ⭐ 空席の有無（追加）
     @Transient
     private boolean hasVacancy;
-
-    // ⭐ getter / setter（Lombok に無いので自作）
-    public boolean isHasVacancy() {
-        return hasVacancy;
-    }
-
-    public void setHasVacancy(boolean hasVacancy) {
-        this.hasVacancy = hasVacancy;
-    }
 
     public String getAvailableTime() {
         if (this.availableTime != null && !this.availableTime.isBlank()) {
             return this.availableTime;
         }
-        String from = this.availableFrom == null ? "" : this.availableFrom;
-        String to = this.availableTo == null ? "" : this.availableTo;
-        return from + "〜" + to;
+        return (availableFrom == null ? "" : availableFrom)
+                + "〜"
+                + (availableTo == null ? "" : availableTo);
     }
 
     public void setAvailableTime(String availableTime) {
         this.availableTime = availableTime;
         if (availableTime == null) return;
+
         if (availableTime.contains("〜")) {
             String[] parts = availableTime.split("〜", 2);
             this.availableFrom = parts[0].trim();

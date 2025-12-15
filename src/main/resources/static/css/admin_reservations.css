@@ -1,0 +1,58 @@
+body {
+    background-color: #f9f9f9;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* タイトルバー */
+.title-bar {
+    background-color: #f08c4c;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.title-bar h1 {
+    color: white;
+    font-size: 24px;
+    margin: 0;
+}
+
+/* 一覧の外枠 */
+.reservation-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* テーブル */
+.reservation-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reservation-table th,
+.reservation-table td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.reservation-table th {
+    background-color: #ffe0c0;
+    font-weight: bold;
+}
+
+.reservation-table tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.reservation-table tr:hover {
+    background-color: #f5f5f5;
+}

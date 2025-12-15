@@ -2,6 +2,8 @@ package com.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -11,54 +13,36 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "space_seats")
 public class Seat {
-	
-	@Id
-	@Column(name = "space_seat_id")
-	private int spaceSeatId;
 
-	@Column(name = "seat_count")
-	private int seatCount;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "space_seat_id")
+    private Integer spaceSeatId;
 
-	@Column(name = "space_id")
-	private int spaceId;
-	
-	@Column(name = "space_times_id")
-	private int spaceTimesId;
+    @Column(name = "seat_count", nullable = false)
+    private Integer seatCount = 0;  // ← デフォルト必須!!
 
+    @Column(name = "space_id", nullable = false)
+    private Integer spaceId;
 
-	public int getSpaceSeatId() {
-		return spaceSeatId;
-	}
+    @Column(name = "space_times_id", nullable = false)
+    private Integer spaceTimesId;
 
-	public void setSpaceSeatId(int spaceSeatId) {
-		this.spaceSeatId = spaceSeatId;
-	}
+    public Seat() {
+        this.seatCount = 0;  // ← ここも重要
+    }
 
-	public int getSeatCount() {
-		return seatCount;
-	}
+    // --- 以下 getter/setter 全部再生成（重要） ---
+    public Integer getSpaceSeatId() { return spaceSeatId; }
+    public void setSpaceSeatId(Integer id) { this.spaceSeatId = id; }
 
-	public void setSeatCount(int seatCount) {
-		this.seatCount = seatCount;
-	}
+    public Integer getSeatCount() { return seatCount; }
+    public void setSeatCount(Integer seatCount) { this.seatCount = seatCount; }
 
-	public int getSpaceId() {
-		return spaceId;
-	}
+    public Integer getSpaceId() { return spaceId; }
+    public void setSpaceId(Integer id) { this.spaceId = id; }
 
-	public void setSpaceId(int spaceId) {
-		this.spaceId = spaceId;
-	}
-
-	public int getSpaceTimesId() {
-		return spaceTimesId;
-	}
-
-	public void setSpaceTimesId(int spaceTimesId) {
-		this.spaceTimesId = spaceTimesId;
-	}
-
-	
-
-
+    public Integer getSpaceTimesId() { return spaceTimesId; }
+    public void setSpaceTimesId(Integer id) { this.spaceTimesId = id; }
 }
+

@@ -36,6 +36,7 @@ public class Reservation {
         this.reservationDay = LocalDate.now();
     }
 
+    // 表示用フィールド（DBには持たない）
     @Transient
     private String spaceName;
 
@@ -45,7 +46,11 @@ public class Reservation {
     @Transient
     private String time;
 
+    @Transient
+    private String userName;   // ← 管理者画面用：予約者名
+
     // ------ Getter / Setter ------
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -69,4 +74,7 @@ public class Reservation {
 
     public String getTime() { return time; }
     public void setTime(String time) { this.time = time; }
+
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 }

@@ -23,11 +23,15 @@ import com.entity.Admin;
 import com.entity.Seat;
 import com.entity.Space;
 import com.entity.SpaceTime;
+import com.entity.Reservation;
+import com.entity.Login;
 import com.form.TimeSeatDto;
 import com.repository.AdminRepository;
 import com.repository.SeatRepository;
 import com.repository.SpaceRepository;
 import com.repository.SpaceTimeRepository;
+import com.repository.ReservationRepository;
+import com.repository.LoginRepository;
 
 @Controller
 @RequestMapping("/admin")
@@ -41,148 +45,189 @@ public class AdminController {
     private SeatRepository seatRep;
     @Autowired
     private SpaceTimeRepository spaceTimeRep;
+    @Autowired
+    private ReservationRepository reservationRep;
+    @Autowired
+    private LoginRepository loginRep;
 
-    /**
-     * 管理者ログインフォーム表示
-     * 遷移元：「管理者はこちら」リンク
-     */
+    /* ===============================
+     * ◆ 管理者ログイン画面
+     * =============================== */
     @GetMapping("/login")
     public String adminLoginForm() {
-        return "admin/login";  // templates/admin_login.html
+        return "admin/login";
     }
 
-    /**
-     * 管理者ログイン処理
-     * 遷移元：ログインフォーム
-     * 成功時：ダッシュボードにリダイレクト
-     */
+    /* ===============================
+     * ◆ 管理者ログイン処理
+     * =============================== */
     @PostMapping("/check")
-    public String adminCheck(@RequestParam("adminNumber") String adminNumber,
-                             @RequestParam("password") String password,
-                             HttpSession session,
-                             Model model) {
+    public String adminCheck(
+            @RequestParam("adminNumber") String adminNumber,
+            @RequestParam("password") String password,
+            HttpSession session,
+            Model model) {
 
-        // 管理者認証
         if (!adminRep.existsByAdminNumberAndPassword(adminNumber, password)) {
             model.addAttribute("error", "※ 管理番号またはパスワードが正しくありません。");
             return "admin/login";
         }
 
-        // セッションに管理者情報を保存
         Admin admin = adminRep.findByAdminNumberAndPassword(adminNumber, password);
         session.setAttribute("adminUser", admin);
 
-        // 管理者ダッシュボードに遷移（テンプレート直下に配置している場合）
         return "redirect:/admin/dashboard";
     }
 
-    /**
-     * 管理者ログアウト処理
-     * 遷移元：ログアウトボタン（今後の実装）
-     */
+    /* ===============================
+     * ◆ ログアウト
+     * =============================== */
     @GetMapping("/logout")
     public String adminLogout(HttpSession session) {
-        session.invalidate();  // セッション破棄
+        session.invalidate();
         return "redirect:/admin/login";
     }
 
-    /**
-     * 管理者用ダッシュボード画面表示
-     * 遷移元：ログイン成功後のリダイレクト
-     */
+    /* ===============================
+     * ◆ ダッシュボード
+     * =============================== */
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
-    	
+
         Admin adminUser = (Admin) session.getAttribute("adminUser");
         if (adminUser == null) {
             return "redirect:/admin/login";
         }
 
         model.addAttribute("adminUser", adminUser);
-        return "dashboard";  // templates/dashboard.html に遷移
+        return "admin/dashboard";
     }
-    
-    @GetMapping("/space")
-    public String adminSpaceList(Model model, HttpSession session) {
-        // ログインしていなければログイン画面へ
+
+    /* ===============================
+     * ◆ 予約一覧表示
+     * =============================== */
+    @GetMapping("/reservations")
+    public String adminReservations(Model model, HttpSession session) {
+
         Admin adminUser = (Admin) session.getAttribute("adminUser");
         if (adminUser == null) {
             return "redirect:/admin/login";
         }
 
-        // データを取得
+        Long adminId = (long) adminUser.getID();
+        List<Space> mySpaces = spaceRep.findByAdminId(adminId);
+
+        if (mySpaces.isEmpty()) {
+            model.addAttribute("reservationList", new ArrayList<Reservation>());
+            return "admin/admin_reservations";
+        }
+
+        Map<Integer, Space> spaceMap = new HashMap<>();
+        for (Space s : mySpaces) {
+            if (s.getId() != null) {
+                spaceMap.put(s.getId().intValue(), s);
+            }
+        }
+
+        List<SpaceTime> timeList = spaceTimeRep.findAll();
+        Map<Integer, SpaceTime> timeMap = new HashMap<>();
+        for (SpaceTime t : timeList) {
+            timeMap.put(t.getSpaceTimesId(), t);
+        }
+
+        List<Login> userList = loginRep.findAll();
+        Map<Integer, Login> userMap = new HashMap<>();
+        for (Login u : userList) {
+            userMap.put(u.getID(), u);
+        }
+
+        List<Reservation> all = reservationRep.findAll();
+        List<Reservation> result = new ArrayList<>();
+
+        for (Reservation r : all) {
+            Space space = spaceMap.get(r.getSpaceId());
+            if (space == null) continue;
+
+            r.setSpaceName(space.getName());
+            r.setLocation(space.getLocation());
+
+            SpaceTime time = timeMap.get(r.getSpaceTimesId());
+            if (time != null) r.setTime(time.getTime());
+
+            Login user = userMap.get(r.getUserId());
+            if (user != null) r.setUserName(user.getName());
+
+            result.add(r);
+        }
+
+        model.addAttribute("reservationList", result);
+        return "admin/admin_reservations";
+    }
+
+    /* ===============================
+     * ◆ スペース一覧（座席数表示）
+     * =============================== */
+    @GetMapping("/space")
+    public String adminSpaceList(Model model, HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) return "redirect:/admin/login";
+
         List<Space> spaceList = spaceRep.findAll();
         List<SpaceTime> timeList = spaceTimeRep.findAll();
         List<Seat> seatList = seatRep.findAll();
 
-        // 表示用のデータを作る
         Map<Integer, List<TimeSeatDto>> spaceTimeMap = new HashMap<>();
 
-        // スペースごとに処理
         for (Space space : spaceList) {
             List<TimeSeatDto> timeSeatList = new ArrayList<>();
 
-            // 各時間帯ごとに座席数を調べる
             for (SpaceTime time : timeList) {
                 int totalSeats = 0;
 
-                // 該当する座席を1つずつチェック
                 for (Seat seat : seatList) {
-                	boolean sameSpace = seat.getSpaceId() == space.getId().intValue();
-                	boolean sameTime  = seat.getSpaceTimesId() == time.getSpaceTimesId();
-                    if (sameSpace && sameTime) {
+                    if (seat.getSpaceId() == space.getId().intValue()
+                            && seat.getSpaceTimesId() == time.getSpaceTimesId()) {
                         totalSeats += seat.getSeatCount();
                     }
                 }
 
-                // 時間帯と座席数の組み合わせをリストに追加
-                TimeSeatDto dto = new TimeSeatDto(time.getTime(), totalSeats);
-                timeSeatList.add(dto);
+                timeSeatList.add(new TimeSeatDto(time.getTime(), totalSeats));
             }
-            // スペースIDごとのマップに追加
-            spaceTimeMap.put(space.getId().intValue(), timeSeatList);
 
+            // ★ 修正点：Long → int に変換
+            spaceTimeMap.put(space.getId().intValue(), timeSeatList);
         }
 
-        // 画面へデータを渡す
         model.addAttribute("spaceList", spaceList);
         model.addAttribute("spaceTimeMap", spaceTimeMap);
 
         return "admin/space_list";
     }
-    
-    /*
-     * 管理者権限：座席の増減処理
-     * updateSeat.js→DB処理
-     */
-    //@ResponseBody:メソッドの戻り値を「テンプレート名」としてではなく、HTTPのボディ内容としてそのまま返す指示
+
+    /* ===============================
+     * ◆ 座席数更新（AJAX）
+     * =============================== */
     @PostMapping("/updateSeat")
     @ResponseBody
     public ResponseEntity<String> updateSeat(@RequestBody Map<String, Object> body) {
-        int spaceId = (int) body.get("spaceId");
-        int timeIndex = (int) body.get("timeIndex"); //時間帯内のリストのインデックス番号
-        int diff = (int) body.get("diff"); //増減させる数値
 
-        // 時間帯リストから該当ID取得
+        int spaceId = (int) body.get("spaceId");
+        int timeIndex = (int) body.get("timeIndex");
+        int diff = (int) body.get("diff");
+
         List<SpaceTime> timeList = spaceTimeRep.findAll();
-        // timeIndexがリストの範囲外である場合→エラー返却
         if (timeIndex < 0 || timeIndex >= timeList.size()) {
             return ResponseEntity.badRequest().body("時間帯が見つかりません");
         }
-        // 時間帯のリストから、指定インデックスのIDを取得
-        int timeId = timeList.get(timeIndex).getSpaceTimesId();
 
-        // 既に該当する spaceId と timeId のレコードがあるかチェック
+        int timeId = timeList.get(timeIndex).getSpaceTimesId();
         Seat seat = seatRep.findBySpaceIdAndSpaceTimesId(spaceId, timeId);
 
-        // null チェック
         if (seat != null) {
-        	// 現在の座席数に diff を加算
             int newCount = seat.getSeatCount() + diff;
-            // マイナスにならないように 0 以下は切り捨て
-            if (newCount < 0) newCount = 0;
-            seat.setSeatCount(newCount);
-        } else { // 存在しない場合　各値を設定(diffがマイナスでも0を設定)
+            seat.setSeatCount(Math.max(newCount, 0));
+        } else {
             seat = new Seat();
             seat.setSpaceId(spaceId);
             seat.setSpaceTimesId(timeId);
@@ -190,46 +235,74 @@ public class AdminController {
         }
 
         seatRep.save(seat);
-        //ResponseEntity.ok():HTTPステータスやボディなどのレスポンスを細かく制御できるクラス
         return ResponseEntity.ok("更新完了");
     }
 
-    /*
-     * 新規スペースの作成
-     * スペース一覧(admin/space_list.html)_スペース作成ボタン
-     * 
-     * 
-     */
+    /* ===============================
+     * ◆ スペース作成
+     * =============================== */
     @GetMapping("/space/new")
     public String newSpaceForm() {
-        return "space_form";
+        return "admin/space_form";
     }
 
-    // 保存処理
     @PostMapping("/space/save")
-    public String saveSpace(@RequestParam String name,
-                            @RequestParam String location) {
+    public String saveSpace(
+            @RequestParam("name") String name,
+            @RequestParam("location") String location,
+            @RequestParam("availableFrom") String availableFrom,
+            @RequestParam("availableTo") String availableTo,
+            HttpSession session) {
+
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
+        if (adminUser == null) {
+            return "redirect:/admin/login";
+        }
+
+        // --- ① Space を保存 ---
         Space space = new Space();
         space.setName(name);
         space.setLocation(location);
-        spaceRep.save(space);
-        return "redirect:/space"; // 一覧画面に戻る
-    }
+        space.setAvailableFrom(availableFrom);
+        space.setAvailableTo(availableTo);
+        space.setAdminId((long) adminUser.getID());
 
-    /**
-     * スペース削除処理
-     * 該当スペースの座席（Seat）と時間帯（SpaceTime）も合わせて削除
-     * 遷移元：admin/space_list.html のスペース削除フォーム
-     */
-    @PostMapping("/space/delete/{id}")
-    public String deleteSpace(@PathVariable int id) {
-        // 座席だけ削除すればよい
-        seatRep.deleteBySpaceId(id);
+        spaceRep.save(space);   // ← Space の ID はここで確定
 
-        // SpaceTimeは共通時間帯として残す
-        spaceRep.deleteById(Long.valueOf(id));
+        // --- ② Seat 初期データ作成（既存チェック付き）---
+        List<SpaceTime> timeList = spaceTimeRep.findAll();
+
+        for (SpaceTime t : timeList) {
+
+            // ★ すでに Seat が存在するか確認
+            Seat seat = seatRep.findBySpaceIdAndSpaceTimesId(
+                    space.getId().intValue(),
+                    t.getSpaceTimesId()
+            );
+
+            if (seat == null) {
+                // 存在しない場合のみ INSERT
+                seat = new Seat();
+                seat.setSpaceId(space.getId().intValue());
+                seat.setSpaceTimesId(t.getSpaceTimesId());
+                seat.setSeatCount(0);
+                seatRep.save(seat);
+            }
+        }
 
         return "redirect:/admin/space";
     }
 
+
+    /* ===============================
+     * ◆ スペース削除
+     * =============================== */
+    @PostMapping("/space/delete/{id}")
+    public String deleteSpace(@PathVariable int id) {
+
+        seatRep.deleteBySpaceId(id);
+        spaceRep.deleteById((long) id);
+
+        return "redirect:/admin/space_list";
+    }
 }

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>予約状況（管理者）</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="stylesheet" th:href="@{/css/admin_reservations.css}">
+</head>
+<body>
+
+<!-- ナビゲーション -->
+<div class="navigation">
+    <div class="nav-left">
+        &nbsp;
+    </div>
+    <div class="nav-right">
+        <a th:href="@{/admin/dashboard}" class="btn">ダッシュボード</a>
+        <a th:href="@{/logout}" class="btn">ログアウト</a>
+    </div>
+</div>
+
+<!-- タイトル -->
+<div class="title-bar">
+    <h1>予約状況（管理者）</h1>
+</div>
+
+<div class="reservation-container" th:if="${#lists.isEmpty(reservationList)}">
+    <p>現在、あなたが管理しているスペースには予約がありません。</p>
+</div>
+
+<div class="reservation-container" th:if="${!#lists.isEmpty(reservationList)}">
+
+    <table class="reservation-table">
+        <thead>
+        <tr>
+            <th>予約ID</th>
+            <th>予約者</th>
+            <th>スペース</th>
+            <th>場所</th>
+            <th>時間帯</th>
+            <th>予約日</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${reservationList}">
+            <td th:text="${r.id}"></td>
+            <td th:text="${r.userName}">山田太郎</td>
+            <td th:text="${r.spaceName}">A会議室</td>
+            <td th:text="${r.location}">東京本社</td>
+            <td th:text="${r.time}">10:00〜11:00</td>
+            <td th:text="${r.reservationDay}">2025-12-05</td>
+            <td>
+                <form th:action="@{/admin/reservations/{id}/cancel(id=${r.id})}"
+                      method="post"
+                      onsubmit="return confirm('この予約をキャンセルしてもよろしいですか？');">
+                    <button type="submit" class="btn btn-danger">キャンセル</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>
