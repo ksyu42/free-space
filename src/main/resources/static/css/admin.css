@@ -76,3 +76,34 @@
 .form-back-link:hover {
     background-color: #ccc;
 }
+
+/* ===== ÀÈŠÇ—ƒe[ƒuƒ‹ ===== */
+.seat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+
+.seat-table th,
+.seat-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.seat-table th {
+    background-color: #f08c4c;
+    color: white;
+}
+
+.seat-btn {
+    padding: 5px 10px;
+    font-size: 16px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.seat-btn.minus {
+    background-color: #ccc;
+}
+

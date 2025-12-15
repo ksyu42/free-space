@@ -2,64 +2,41 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>スペース一覧（管理者）</title>
+    <title>スペース管理</title>
 
-    <!-- 共通CSS -->
     <link rel="stylesheet" th:href="@{/css/common.css}">
-    <!-- 管理者専用CSS -->
-    <link rel="stylesheet" th:href="@{/css/admin_space.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin_spaces.css}">
 
-    <!-- 座席増減JavaScript -->
-    <script th:src="@{/javascript/updateSeat.js}" defer></script>
+    <!-- 座席数操作用 JS -->
+    <script th:src="@{/js/admin-seat.js}"></script>
 </head>
-
 <body>
 
-<!-- 🔗 ナビゲーション -->
+<!-- ナビ -->
 <div class="navigation">
+    <div class="nav-left"></div>
     <div class="nav-right">
-        <a th:href="@{/admin/dashboard}" class="btn">トップ</a>
+        <a th:href="@{/admin/space/new}" class="btn">＋ スペースを作成</a>
         <a th:href="@{/logout}" class="btn">ログアウト</a>
     </div>
 </div>
 
 <!-- タイトル -->
 <div class="title-bar">
-    <h1>スペース一覧（管理者）</h1>
+    <h1>スペース管理</h1>
 </div>
 
-<!-- 新規スペース登録ボタン -->
-<div class="action-bar">
-    <a th:href="@{/admin/space/new}" class="btn btn-primary">＋ スペースを作成</a>
-</div>
+<!-- スペース一覧 -->
+<div class="space-list">
 
-<!-- スペース一覧カード -->
-<div class="space-wrapper" th:each="space : ${spaceList}">
+    <div class="space-card" th:each="space : ${spaceList}">
 
-    <div class="space-card">
+        <!-- スペース基本情報 -->
+        <h2 th:text="${space.name}">スペース名</h2>
+        <p class="location" th:text="${space.location}">場所</p>
 
-        <!-- スペース名＋場所 -->
-        <div class="space-header">
-            <h2 th:text="${space.name}"></h2>
-            <span class="location" th:text="${space.location}"></span>
-        </div>
-
-        <!-- 空席状況 -->
-        <div class="vacancy-status">
-            <span th:if="${space.hasVacancy}" class="vacancy-yes">空席あり</span>
-            <span th:if="${!space.hasVacancy}" class="vacancy-no">満席</span>
-        </div>
-
-        <!-- スペース削除ボタン -->
-        <form th:action="@{/admin/space/delete/{id}(id=${space.id})}"
-              method="post"
-              onsubmit="return confirm('このスペースを削除しますか？');">
-            <button type="submit" class="btn btn-danger small-btn">削除</button>
-        </form>
-
-        <hr>
-
-        <!-- 時間帯ごとの座席数テーブル -->
+        <!-- 時間帯・座席数テーブル -->
         <table class="seat-table">
             <thead>
                 <tr>
@@ -68,29 +45,45 @@
                     <th>操作</th>
                 </tr>
             </thead>
-
             <tbody>
-                <tr th:each="ts, iter : ${spaceTimeMap[space.id]}">
 
-                    <td th:text="${ts.time}"></td>
-
-                    <!-- 表示用の座席数 -->
-                    <td th:id="'seatCount-' + ${space.id} + '-' + ${iter.index}"
-                        th:text="${ts.seatCount}"></td>
+                <!-- 時間帯ごと -->
+                <tr th:each="time : ${timeList}">
+                    <td th:text="${time.time}">09:00〜10:00</td>
 
                     <td>
-                        <button type="button"
-                            class="btn btn-small btn-plus"
-                            th:attr="onclick='changeSeat(' + ${space.id} + ',' + ${iter.index} + ',1)'">＋</button>
-
-                        <button type="button"
-                            class="btn btn-small btn-minus"
-                            th:attr="onclick='changeSeat(' + ${space.id} + ',' + ${iter.index} + ',-1)'">－</button>
+                        <span
+                            th:id="'seatCount-' + ${space.id} + '-' + ${time.spaceTimesId}"
+                            th:text="${seatMap[space.id + '-' + time.spaceTimesId] != null
+                                      ? seatMap[space.id + '-' + time.spaceTimesId]
+                                      : 0}">
+                            0
+                        </span>
                     </td>
 
+                    <td class="seat-btns">
+					    <button type="button"
+					            th:onclick="'changeSeat(' + ${space.id} + ',' + ${time.spaceTimesId} + ',1)'">
+					        ＋
+					    </button>
+					
+					    <button type="button"
+					            th:onclick="'changeSeat(' + ${space.id} + ',' + ${time.spaceTimesId} + ',-1)'">
+					        −
+					    </button>
+					</td>
+
                 </tr>
+
             </tbody>
         </table>
+
+        <!-- スペース削除 -->
+        <form th:action="@{/admin/space/delete/{id}(id=${space.id})}"
+              method="post"
+              onsubmit="return confirm('このスペースを削除しますか？');">
+            <button type="submit" class="delete-btn">削除</button>
+        </form>
 
     </div>
 

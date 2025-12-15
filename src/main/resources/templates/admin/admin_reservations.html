@@ -8,6 +8,11 @@
 </head>
 <body>
 
+<!-- エラーメッセージ -->
+<div th:if="${errorMessage != null}" class="error-message">
+    <p th:text="${errorMessage}"></p>
+</div>
+
 <!-- ナビゲーション -->
 <div class="navigation">
     <div class="nav-left">

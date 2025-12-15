@@ -7,129 +7,78 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import com.entity.Admin;
 import com.entity.Space;
 import com.entity.SpaceTime;
+import com.entity.Seat;
+import com.repository.SpaceRepository;
 import com.repository.SpaceTimeRepository;
-import com.service.AvailableSeatService;
-import com.service.SpaceService;
+import com.repository.SeatRepository;
 
 @Controller
-@RequestMapping("/admin/spaces")
+@RequestMapping("/admin/space")
 public class SpaceController {
 
-    // スペース情報を扱うサービス
     @Autowired
-    private SpaceService spaceService;
-    
-    @Autowired
-    private AvailableSeatService availableSeatService;
+    private SpaceRepository spaceRep;
 
     @Autowired
-    private SpaceTimeRepository spaceTimeRepository;
+    private SpaceTimeRepository spaceTimeRep;
 
+    @Autowired
+    private SeatRepository seatRep;
 
-    /**
-     * 管理者が登録したスペース一覧を表示する
-     */
-    @GetMapping
-    public String listSpaces(Model model, HttpSession session) {
-
-        Admin adminUser = (Admin) session.getAttribute("adminUser");
-        if (adminUser == null) {
-            return "redirect:/admin/login";
-        }
-
-        Long adminId = (long) adminUser.getID();
-        List<Space> spaces = spaceService.getSpacesByAdmin(adminId);
-
-        // 全時間帯を取得
-        List<SpaceTime> timeList = spaceTimeRepository.findAll();
-
-        // 各スペースの空席有無を判定
-        for (Space space : spaces) {
-
-            boolean hasVacancy = false;
-
-            for (SpaceTime time : timeList) {
-                int available = availableSeatService.getAvailableSeats(
-                        space.getId().intValue(),
-                        time.getSpaceTimesId()
-                );
-
-                if (available > 0) {
-                    hasVacancy = true;
-                    break;
-                }
-            }
-
-            space.setHasVacancy(hasVacancy); // Space entity に追加した項目
-        }
-
-        model.addAttribute("spaces", spaces);
-        return "admin/space_list";
-    }
-
-
-    /**
-     * スペース新規登録画面表示
-     */
+    /* ===============================
+     * ◆ スペース新規作成画面
+     * =============================== */
     @GetMapping("/new")
     public String showForm(Model model) {
         model.addAttribute("space", new Space());
         return "admin/space_form";
     }
 
-    /**
-     * スペース編集画面表示
-     */
-    @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Long id, Model model) {
-        Space space = spaceService.getById(id);
-        if (space == null) {
-            // 指定IDのスペースが存在しない場合は一覧へ戻る
-            return "redirect:/admin/spaces";
-        }
-        model.addAttribute("space", space);
-        return "admin/space_form";
-    }
-
-    /**
-     * スペース新規登録／更新処理
-     */
+    /* ===============================
+     * ◆ スペース保存
+     * =============================== */
     @PostMapping("/save")
     public String saveSpace(@ModelAttribute Space space, HttpSession session) {
-        // セッションからログイン中の管理者情報を取得
-        Admin adminUser = (Admin) session.getAttribute("adminUser");
 
-        // ログインしていない場合は管理者ログイン画面へリダイレクト
+        Admin adminUser = (Admin) session.getAttribute("adminUser");
         if (adminUser == null) {
             return "redirect:/admin/login";
         }
 
-        // AdminエンティティのIDは int 型なので、Long に変換してセット
-        Long adminId = (long) adminUser.getID();
-        space.setAdminId(adminId);
+        space.setAdminId((long) adminUser.getID());
+        spaceRep.save(space);
 
-        // スペース情報を保存
-        spaceService.save(space);
+        /* --- 座席初期化 --- */
+        List<SpaceTime> timeList = spaceTimeRep.findAll();
+        for (SpaceTime t : timeList) {
+            Seat seat = seatRep.findBySpaceIdAndSpaceTimesId(
+                    space.getId().intValue(),
+                    t.getSpaceTimesId()
+            );
 
-        // 一覧画面へリダイレクト
+            if (seat == null) {
+                seat = new Seat();
+                seat.setSpaceId(space.getId().intValue());
+                seat.setSpaceTimesId(t.getSpaceTimesId());
+                seat.setSeatCount(0);
+                seatRep.save(seat);
+            }
+        }
+
         return "redirect:/admin/spaces";
     }
 
-    /**
-     * スペース削除処理
-     */
-    @GetMapping("/delete/{id}")
+    /* ===============================
+     * ◆ スペース削除
+     * =============================== */
+    @PostMapping("/delete/{id}")
     public String deleteSpace(@PathVariable Long id) {
-        spaceService.delete(id);
+        spaceRep.deleteById(id);
         return "redirect:/admin/spaces";
     }
 }
