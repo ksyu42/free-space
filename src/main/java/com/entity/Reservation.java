@@ -36,7 +36,11 @@ public class Reservation {
 
     @PrePersist
     public void onPrePersist() {
-        this.reservationDay = LocalDate.now();
+        // 予約日が未指定の場合のみ、登録日(=今日)を入れる（保険）
+        // ※本来は画面で必須入力させるため、基本は controller から setReservationDay される想定
+        if (this.reservationDay == null) {
+            this.reservationDay = LocalDate.now();
+        }
     }
 
     // 表示用フィールド（DBには持たない）

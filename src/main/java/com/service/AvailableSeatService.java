@@ -1,5 +1,9 @@
 package com.service;
 
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,24 +35,33 @@ public class AvailableSeatService {
      * @param spaceTimesId 時間帯ID
      * @return 残席数（最低0）
      */
-    public int getAvailableSeats(int spaceId, int spaceTimesId) {
+    public int getAvailableSeats(int spaceId, int spaceTimesId, LocalDate reservationDay) {
 
-        // 座席マスタ seat_count を取得
         Seat seat = seatRepository.findBySpaceIdAndSpaceTimesId(spaceId, spaceTimesId);
-
         if (seat == null) {
-            // その時間帯に席自体が存在しない → 残席0扱い
             return 0;
         }
 
         int maxSeats = seat.getSeatCount(); // 最大席数
 
-        // 予約済み数を取得
-        long reserved = reservationRepository.countBySpaceIdAndSpaceTimesId(spaceId, spaceTimesId);
+        // 空席計算に含める status（申請中も枠を確保したいので PENDING もカウント）
+        List<String> targetStatus = Arrays.asList("PENDING", "APPROVED");
 
-        // 残席数 = 最大席数 - 予約数
+        long reserved = reservationRepository.countBySpaceIdAndSpaceTimesIdAndReservationDayAndStatusIn(
+                spaceId,
+                spaceTimesId,
+                reservationDay,
+                targetStatus
+        );
+
         int available = maxSeats - (int) reserved;
+        return Math.max(available, 0);
+    }
 
-        return Math.max(available, 0); // 最低0
+    /**
+     * 既存呼び出し互換用（reservationDay 未指定なら今日で計算）
+     */
+    public int getAvailableSeats(int spaceId, int spaceTimesId) {
+        return getAvailableSeats(spaceId, spaceTimesId, LocalDate.now());
     }
 }

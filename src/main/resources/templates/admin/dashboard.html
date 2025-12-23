@@ -7,18 +7,18 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
-	<div class="navigation"><div class="nav-left">&nbsp;</div>
-	<div class="nav-right">&nbsp;</div></div>
-    <!-- タイトルバー -->
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">&nbsp;</div>
+    </div>
+
     <div class="title-bar">
         <h1>管理者ダッシュボード</h1>
     </div>
 
-    <!-- メニュー表示 -->
     <div class="admin-menu">
-		<a th:href="@{/admin/spaces}">スペース一覧</a>
+        <a th:href="@{/admin/space}" class="admin-btn">スペース一覧</a>
         <a th:href="@{/admin/reservations}" class="admin-btn">予約状況の確認</a>
     </div>
-
 </body>
 </html>

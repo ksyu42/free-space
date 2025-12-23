@@ -35,25 +35,34 @@
                 <span th:text="${item.location}"></span>
             </div>
 
-            <form th:action="@{/reserve/complete}" method="post">
-                <input type="hidden" name="spaceId" th:value="${item.id}" />
-           
-		       	<div class="space-item space-inline">
-					<strong>利用時間：</strong>
-					<select name="spaceTimesId" required>
-						<option value="" disabled selected>時間を選択してください</option>
-						<option th:each="time : ${spaceTimeList}"
-								th:value="${time.spaceTimesId}"
-								th:text="${time.time + (time.seatCount == 0 ? '（満席）' : '（残り' + time.seatCount + '席）')}"
-								th:disabled="${time.seatCount == 0}">
-						</option>
-
-					</select>
-				</div>
-				<div class="button-wrapper">
-				    <button type="submit">予約を確定する</button>				    
-				</div>
-            </form>
+			<form th:action="@{/reserve/complete}" method="post">
+			  <input type="hidden" name="spaceId" th:value="${item.id}" />
+			
+			  <!-- ★ 利用日（必須） -->
+			  <div class="space-item space-inline">
+			    <strong>利用日：</strong>
+			    <input type="date"
+			           name="reservationDay"
+			           th:value="${reservationDay}"
+			           required />
+			  </div>
+			
+			  <div class="space-item space-inline">
+			    <strong>利用時間：</strong>
+			    <select name="spaceTimesId" required>
+			      <option value="" disabled selected>時間を選択してください</option>
+			      <option th:each="time : ${spaceTimeList}"
+			              th:value="${time.spaceTimesId}"
+			              th:text="${time.time}"
+			              th:disabled="${!time.hasVacancy}">
+			      </option>
+			    </select>
+			  </div>
+			
+			  <div class="button-wrapper">
+			    <button type="submit">予約を確定する</button>
+			  </div>
+			</form>
 
         </div>
     </div>
