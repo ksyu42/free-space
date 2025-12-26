@@ -8,46 +8,31 @@
 </head>
 <body>
 
-    <!-- スペース一覧へのリンク -->
+    <!-- ナビゲーション -->
     <div class="navigation">
-		<div class="nav-left">
-			<span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
-		</div>
-		<div class="nav-right">
-			<a th:href="@{/space}" class="btn">スペース一覧へ</a>
-			<a th:href="@{/profile}" class="btn">プロフィール編集</a>
-			<a th:href="@{/logout}" class="btn">ログアウト</a>
-		</div>
-	</div>
+        <div class="nav-left">
+            <span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+        </div>
+        <div class="nav-right">
+            <a th:href="@{/space}" class="btn">スペース一覧</a>
+            <a th:href="@{/profile}" class="btn">プロフィール</a>
+            <a th:href="@{/logout}" class="btn">ログアウト</a>
+        </div>
+    </div>
 
-
-    <h1>マイページ</h1>
+    <h1>予約一覧</h1>
 
     <div class="space-container">
+
+        <div class="space-card" th:if="${reservationList == null || #lists.isEmpty(reservationList)}">
+            <div class="space-item">予約はありません。</div>
+        </div>
+
         <div class="space-card" th:each="reservation : ${reservationList}">
 
-            <div class="badge-wrapper">
-			    <!-- 申請中 -->
-			    <span class="badge badge-pending"
-			          th:if="${reservation.status == 'PENDING'}">
-			        申請中
-			    </span>
-			
-			    <!-- 承認済み -->
-			    <span class="badge badge-approved"
-			          th:if="${reservation.status == 'APPROVED'}">
-			        承認済み
-			    </span>
-			
-			    <!-- 却下 -->
-			    <span class="badge badge-rejected"
-			          th:if="${reservation.status == 'REJECTED'}">
-			        却下
-			    </span>
-			</div>
             <div class="space-item">
                 <strong>スペース名：</strong>
-                <span class="space-name" th:text="${reservation.spaceName}"></span>
+                <span class="space-detail" th:text="${reservation.spaceName}"></span>
             </div>
 
             <div class="space-item">
@@ -56,18 +41,58 @@
             </div>
 
             <div class="space-item">
-                <strong>日付：</strong>
+                <strong>予約日：</strong>
                 <span class="space-detail" th:text="${reservation.reservationDay}"></span>
             </div>
 
             <div class="space-item">
-                <strong>時間：</strong>
+                <strong>時間帯：</strong>
                 <span class="space-detail" th:text="${reservation.time}"></span>
             </div>
+
             <div class="space-item">
-			    <strong>予約状況：</strong>
-			    <span class="space-detail" th:text="${reservation.status}"></span>
-			</div>
+                <strong>予約の状態：</strong>
+
+                <!-- 【修正点】英語ステータス → 日本語表示 -->
+                <span class="space-detail" th:switch="${reservation.status}">
+                    <span th:case="'PENDING'">承認待ち</span>
+                    <span th:case="'APPROVED'">承認済み</span>
+                    <span th:case="'REJECTED'">却下</span>
+                    <span th:case="'CANCELLED'">キャンセル</span>
+                    <span th:case="'USED'">利用済み</span>
+                    <span th:case="*">不明</span>
+                </span>
+            </div>
+
+            <!-- 操作ボタン -->
+            <div class="button-wrapper">
+
+                <!-- キャンセル：PENDING/APPROVED & 予約日が今日以降 -->
+                <form th:if="${(reservation.status == 'PENDING' or reservation.status == 'APPROVED')
+                              and reservation.reservationDay != null
+                              and !reservation.reservationDay.isBefore(T(java.time.LocalDate).now())}"
+                      th:action="@{'/reservation/' + ${reservation.id} + '/cancel'}"
+                      method="post">
+                    <button type="submit" class="btn-orange">キャンセル</button>
+                </form>
+
+                <!-- 利用済み：APPROVED & 予約日が今日以前 -->
+                <form th:if="${reservation.status == 'APPROVED'
+                              and reservation.reservationDay != null
+                              and !reservation.reservationDay.isAfter(T(java.time.LocalDate).now())}"
+                      th:action="@{'/reservation/' + ${reservation.id} + '/used'}"
+                      method="post">
+                    <button type="submit" class="btn-orange">利用済みにする</button>
+                </form>
+
+                <!-- レビュー：USED & 未レビュー -->
+                <a th:if="${reservation.status == 'USED' and !reservation.reviewed}"
+                   th:href="@{'/review/' + ${reservation.id}}"
+                   class="btn">レビューを書く</a>
+
+                <span th:if="${reservation.status == 'USED' and reservation.reviewed}" class="space-detail">レビュー済み</span>
+            </div>
+
         </div>
     </div>
 

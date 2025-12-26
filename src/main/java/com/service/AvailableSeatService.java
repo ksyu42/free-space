@@ -1,23 +1,19 @@
 package com.service;
 
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.entity.Seat;
-import com.repository.ReservationRepository;
 import com.repository.SeatRepository;
 
 /**
- * 残席数を計算するサービスクラス
+ * 残席数を取得するサービスクラス
  * 
- * ・seat テーブルの seat_count ＝ 最大席数
- * ・reservations の件数 ＝ 予約された席数
- *
- * 残席 = seat_count - reservations_count
+ * 仕様（このプロジェクトの運用）：
+ * ・space_seats.seat_count は「最大席数」ではなく「残席」として扱う
+ * ・予約作成（PENDING）時点で seat_count を 1 減らす
+ * ・予約却下 / キャンセル時は seat_count を 1 増やして戻す
+ * ・予約承認（APPROVED）はステータス更新のみ（座席数は動かさない）
  */
 @Service
 public class AvailableSeatService {
@@ -25,43 +21,18 @@ public class AvailableSeatService {
     @Autowired
     private SeatRepository seatRepository;
 
-    @Autowired
-    private ReservationRepository reservationRepository;
-
     /**
-     * 指定スペース × 指定時間帯 の残席数を取得
-     *
-     * @param spaceId      スペースID
-     * @param spaceTimesId 時間帯ID
-     * @return 残席数（最低0）
+     * 指定スペース・時間帯の残席数を返す
      */
-    public int getAvailableSeats(int spaceId, int spaceTimesId, LocalDate reservationDay) {
+    public int getAvailableSeats(int spaceId, int spaceTimesId) {
 
         Seat seat = seatRepository.findBySpaceIdAndSpaceTimesId(spaceId, spaceTimesId);
-        if (seat == null) {
+
+        // seat 情報が存在しない場合は 0 とする
+        if (seat == null || seat.getSeatCount() == null) {
             return 0;
         }
 
-        int maxSeats = seat.getSeatCount(); // 最大席数
-
-        // 空席計算に含める status（申請中も枠を確保したいので PENDING もカウント）
-        List<String> targetStatus = Arrays.asList("PENDING", "APPROVED");
-
-        long reserved = reservationRepository.countBySpaceIdAndSpaceTimesIdAndReservationDayAndStatusIn(
-                spaceId,
-                spaceTimesId,
-                reservationDay,
-                targetStatus
-        );
-
-        int available = maxSeats - (int) reserved;
-        return Math.max(available, 0);
-    }
-
-    /**
-     * 既存呼び出し互換用（reservationDay 未指定なら今日で計算）
-     */
-    public int getAvailableSeats(int spaceId, int spaceTimesId) {
-        return getAvailableSeats(spaceId, spaceTimesId, LocalDate.now());
+        return Math.max(seat.getSeatCount(), 0);
     }
 }

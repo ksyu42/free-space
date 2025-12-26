@@ -55,7 +55,11 @@
 			</div>
 	
 			<div class="space-item button-wrapper">
-				<form th:action="@{/conf}" method="get">
+				<!-- 予約画面(/conf)は SpaceListController 側で @PostMapping なので POST で送信する -->
+				<form th:action="@{/conf}" method="post">
+					<!-- Spring Security を入れている場合のCSRF対策（未使用なら出力されません/無害です） -->
+					<input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
 					<input type="hidden" th:value="${space.id}" name="spaceId"/>
 					<button type="submit" th:disabled="${!space.hasVacancy}">予約</button>
 				</form>

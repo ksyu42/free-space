@@ -1,18 +1,15 @@
 package com.controller;
 
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.format.annotation.DateTimeFormat.ISO;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,146 +17,203 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.entity.Admin;
 import com.entity.Login;
 import com.entity.Reservation;
+import com.entity.Seat;
 import com.entity.Space;
 import com.entity.SpaceTime;
 import com.repository.ReservationRepository;
+import com.repository.SeatRepository;
 import com.repository.SpaceRepository;
 import com.repository.SpaceTimeRepository;
 import com.service.AvailableSeatService;
 
+/**
+ * ユーザー側：スペース一覧～予約完了までの画面制御
+ */
 @Controller
-@RequestMapping("/admin")
 public class SpaceListController {
 
     @Autowired
     private SpaceRepository spaceRep;
+
     @Autowired
     private SpaceTimeRepository timeRep;
+
     @Autowired
     private ReservationRepository reservationRep;
+
+    @Autowired
+    private SeatRepository seatRep;
+
     @Autowired
     private AvailableSeatService availableSeatService;
 
     /**
-     * ◆ 管理者用 スペース一覧表示
+     * スペース一覧表示
      */
-    @GetMapping("/space")
-    public String disp(Model model, HttpSession session) {
+    @RequestMapping("/space")
+    public String spaceList(HttpSession session, Model model) {
 
+        // ログインチェック（ユーザー or 管理者）
+        Login loginUser = (Login) session.getAttribute("loginUser");
         Admin adminUser = (Admin) session.getAttribute("adminUser");
-        if (adminUser == null) {
-            return "redirect:/admin/login";
+        if (loginUser == null && adminUser == null) {
+            return "redirect:/login";
         }
 
-        // 管理者が作成したスペースのみ取得
-        List<Space> spaceList =
-                spaceRep.findByAdminId((long) adminUser.getID());
+        // 全スペース取得
+        List<Space> spaceList = spaceRep.findAll();
 
+        // 残席があるスペースかどうか判定
         List<SpaceTime> timeList = timeRep.findAll();
-
-        // 空席があるかどうかだけ判定
         for (Space space : spaceList) {
+
             boolean hasVacancy = false;
 
             for (SpaceTime t : timeList) {
-                int vacancy = availableSeatService.getAvailableSeats(
-                        space.getId().intValue(),
-                        t.getSpaceTimesId()
-                );
+                int vacancy = availableSeatService.getAvailableSeats(space.getId().intValue(), t.getSpaceTimesId());
                 if (vacancy > 0) {
                     hasVacancy = true;
                     break;
                 }
             }
+
+            // 画面表示用（Spaceに transient で持っている）
             space.setHasVacancy(hasVacancy);
         }
 
         model.addAttribute("spaceList", spaceList);
-        return "admin/space_list";
+        return "space";
     }
 
     /**
-     * ◆ 予約確認画面（利用者）
+     * 予約画面へ遷移（スペース選択後）
+     * 
+     * ・時間帯リストを表示
+     * ・残席が0の時間帯は選択不可（表示だけは出す）
      */
-    @RequestMapping("/conf")
-    public String reserve(
-            Model model,
-            @RequestParam("spaceId") Integer spaceId,
-            @RequestParam(value = "reservationDay", required = false)
-            @DateTimeFormat(iso = ISO.DATE) LocalDate reservationDay,
-            HttpSession session
-    ) {
+    @PostMapping("/conf")
+    public String reservationPage(
+            @RequestParam("spaceId") Long spaceId,
+            HttpSession session,
+            Model model) {
+
+        // ログインチェック（ユーザーのみ）
         Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
             return "redirect:/login";
         }
 
-        // 未指定なら今日
-        if (reservationDay == null) {
-            reservationDay = LocalDate.now();
-        }
-
-        Space selectedSpace = spaceRep.findById(Long.valueOf(spaceId)).orElse(null);
-        if (selectedSpace == null) {
+        Space space = spaceRep.findById(spaceId).orElse(null);
+        if (space == null) {
             return "redirect:/space";
         }
 
         List<SpaceTime> timeList = timeRep.findAll();
 
-        // 残席数をサービスから計算してセット（★日付を渡す）
+        // 時間帯ごとの残席を計算して、画面で選択制御に使う
         for (SpaceTime t : timeList) {
-            int available = availableSeatService.getAvailableSeats(spaceId, t.getSpaceTimesId(), reservationDay);
-            t.setSeatCount(available);
-            t.setHasVacancy(available > 0);
+            int vacancy = availableSeatService.getAvailableSeats(space.getId().intValue(), t.getSpaceTimesId());
+            t.setHasVacancy(vacancy > 0);
         }
 
-        model.addAttribute("selectItems", Collections.singletonList(selectedSpace));
-        model.addAttribute("spaceTimeList", timeList);
+        model.addAttribute("item", space);
+        model.addAttribute("timeList", timeList);
 
-        // ★ 予約日を画面に渡す
-        model.addAttribute("reservationDay", reservationDay);
+        // 予約日（初期値：今日）
+        model.addAttribute("defaultDate", LocalDate.now().toString());
 
         return "reservation";
     }
 
-    @Transactional
+    /**
+     * 予約確定（PENDING登録 + seat_count 減算）
+     * 
+     * 重要：
+     * ・空席確認は画面側だけでなく、確定時にも再チェックする
+     * ・同時予約で seat_count がマイナスにならないよう、対象行をロックして処理する
+     */
     @PostMapping("/reserve/complete")
+    @Transactional
     public String reserveComplete(
             @RequestParam("spaceId") int spaceId,
-            @RequestParam("spaceTimesId") int timeId,
-            @RequestParam("reservationDay")
-            @DateTimeFormat(iso = ISO.DATE) LocalDate reservationDay,
+            @RequestParam("spaceTimesId") int spaceTimesId,
+            @RequestParam("reservationDay") String reservationDay,
             HttpSession session,
-            Model model
-    ) {
+            Model model) {
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
             return "redirect:/login";
         }
 
-        // 念のため未指定防止（HTMLで必須にするがサーバ側でも守る）
-        if (reservationDay == null) {
-            model.addAttribute("message", "利用日が未選択のため予約できませんでした。");
-            return "reserve_comp";
+        // 日付パース（未入力時は今日）
+        LocalDate day;
+        try {
+            day = (reservationDay == null || reservationDay.isBlank()) ? LocalDate.now() : LocalDate.parse(reservationDay);
+        } catch (Exception e) {
+            day = LocalDate.now();
         }
 
-        // 残席数チェック（★日付を渡す）
-        int available = availableSeatService.getAvailableSeats(spaceId, timeId, reservationDay);
-        if (available <= 0) {
-            model.addAttribute("message", "満席のため予約できませんでした。");
-            return "reserve_comp";
+        // 対象 seat 行をロックして取得（同時予約対策）
+        Seat seat = seatRep.findBySpaceIdAndSpaceTimesIdForUpdate(spaceId, spaceTimesId);
+
+        List<String> errorlist = new ArrayList<>();
+
+        // seat が無い、または残席なし
+        if (seat == null || seat.getSeatCount() == null || seat.getSeatCount() <= 0) {
+            errorlist.add("※選択された時間帯は満席のため予約できません。");
         }
 
-        // 予約登録（申請中で登録）
+        // 過去日は予約不可（簡易チェック）
+        if (day.isBefore(LocalDate.now())) {
+            errorlist.add("※過去の日付は予約できません。");
+        }
+
+        if (!errorlist.isEmpty()) {
+            // 予約画面に戻すため、再度必要情報をセット
+            Space space = spaceRep.findById((long) spaceId).orElse(null);
+            List<SpaceTime> timeList = timeRep.findAll();
+            if (space != null) {
+                for (SpaceTime t : timeList) {
+                    int vacancy = availableSeatService.getAvailableSeats(space.getId().intValue(), t.getSpaceTimesId());
+                    t.setHasVacancy(vacancy > 0);
+                }
+            }
+            model.addAttribute("item", space);
+            model.addAttribute("timeList", timeList);
+            model.addAttribute("defaultDate", day.toString());
+            model.addAttribute("errorlist", errorlist);
+            return "reservation";
+        }
+
+        // 予約登録（PENDING）
         Reservation r = new Reservation();
-        r.setSpaceId(spaceId);
-        r.setSpaceTimesId(timeId);
         r.setUserId(loginUser.getID());
-        r.setReservationDay(reservationDay); // ★ ここで利用日を保存
+        r.setSpaceId(spaceId);
+        r.setSpaceTimesId(spaceTimesId);
+        r.setReservationDay(day);
         r.setStatus("PENDING");
+
         reservationRep.save(r);
+
+        // 残席を1減らす（予約の仮押さえ）
+        seat.setSeatCount(seat.getSeatCount() - 1);
+        seatRep.save(seat);
 
         model.addAttribute("message", "予約が完了しました。");
         return "reserve_comp";
+    }
+
+    /* ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+     * ※管理者の承認/却下は AdminController 側で扱う
+     * ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝ */
+
+    /**
+     * 互換のため残しているメソッド（過去のURLが残っていた場合用）
+     * ※今後は /admin/reservations から操作する
+     */
+    @RequestMapping("/conf_dummy")
+    public String confDummy() {
+        return "redirect:/space";
     }
 }

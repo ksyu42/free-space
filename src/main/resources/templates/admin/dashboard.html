@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
+
     <div class="navigation">
         <div class="nav-left">&nbsp;</div>
         <div class="nav-right">&nbsp;</div>
@@ -17,8 +18,15 @@
     </div>
 
     <div class="admin-menu">
-        <a th:href="@{/admin/space}" class="admin-btn">スペース一覧</a>
+        <!--
+            【修正点】
+            SpaceController の一覧は /admin/spaces (class: /admin/spaces + @GetMapping(""))
+         -->
+        <a th:href="@{/admin/spaces}" class="admin-btn">スペース一覧</a>
+
+        <!-- 予約一覧（AdminController 側） -->
         <a th:href="@{/admin/reservations}" class="admin-btn">予約状況の確認</a>
     </div>
+
 </body>
 </html>

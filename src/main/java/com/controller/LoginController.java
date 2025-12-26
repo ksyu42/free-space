@@ -1,8 +1,11 @@
-
 package com.controller;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -11,64 +14,77 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.entity.Admin;
 import com.entity.Login;
 import com.entity.Reservation;
+import com.entity.Seat;
 import com.entity.Space;
 import com.entity.SpaceTime;
-import com.form.LoginClass;
-import com.repository.AdminRepository;
 import com.repository.LoginRepository;
 import com.repository.ReservationRepository;
+import com.repository.ReviewRepository;
+import com.repository.SeatRepository;
 import com.repository.SpaceRepository;
 import com.repository.SpaceTimeRepository;
 
-
 /**
- * login.html
+ * ログイン/会員登録/マイページ/プロフィールを扱うコントローラ
  */
-import javax.servlet.http.HttpSession; // ← 追加
-
 @Controller
 public class LoginController {
 
     @Autowired
-    private LoginRepository loginRep;
-    @Autowired
-    private AdminRepository adminRep;
-    @Autowired
-    private ReservationRepository reservationRep;
-    @Autowired
-    private SpaceRepository spaceRep;
-    @Autowired
-    private SpaceTimeRepository spaceTimeRep;
-    
-    
+    LoginRepository loginRep;
 
-    @RequestMapping("/login")
-    public String disp(Model model,
-                       @ModelAttribute("user") LoginClass loginclass) {
+    @Autowired
+    ReservationRepository reservationRep;
+
+    @Autowired
+    SpaceRepository spaceRep;
+
+    @Autowired
+    SpaceTimeRepository spaceTimeRep;
+
+    @Autowired
+    SeatRepository seatRep;
+
+    @Autowired
+    ReviewRepository reviewRep;
+
+    /* ===============================
+     * ◆ ログイン画面
+     * =============================== */
+    @GetMapping("/login")
+    public String login(Model model) {
+
+        /*
+         * 【修正点】
+         * login.html の th:object で参照するオブジェクトが Model に無いと、
+         * TemplateProcessingException が発生するため、必ず詰める。
+         * 
+         * ※今回 login.html を th:object="${loginclass}" に合わせる
+         */
+        model.addAttribute("loginclass", new Login());
+
         return "login";
     }
-    
 
     /*
-     * ログインチェック/セッション保存処理
-     * 遷移元：ログイン画面/「ログイン」ボタン押下時
-     * 遷移先:スペース一覧(space.html)
+     * ログイン処理
      */
-    @RequestMapping("/check")
-    public String store(Model model,
-                        @Validated @ModelAttribute("user") LoginClass loginclass,
-                        BindingResult result,
-                        HttpSession session) {
+    @PostMapping("/login")
+    public String login_check(
+            @Validated @ModelAttribute("loginclass") Login loginclass,
+            BindingResult result,
+            Model model,
+            HttpSession session) {
 
-        String val1 = loginclass.getUserMail();
-        String val2 = loginclass.getUserPass();
+        String val1 = loginclass.getMail();
+        String val2 = loginclass.getPass();
 
         ArrayList<String> errorlist = new ArrayList<>();
 
@@ -81,55 +97,91 @@ public class LoginController {
         if (!existsBy) {
             errorlist.add("※入力されたメールアドレスまたはパスワードが誤っているためログインできません");
             model.addAttribute("errorlist", errorlist);
+
+            /*
+             * 画面に戻す際も th:object 用のオブジェクトが必要になるため、
+             * 念のためセットしておく（既に入っている場合でも上書きされるだけ）
+             */
+            model.addAttribute("loginclass", loginclass);
+
             return "login";
         }
 
-        // ログインユーザー情報の取得（詳細が必要な場合）
+        // セッションにログインユーザー保存
         Login loginUser = loginRep.findByMailAndPass(val1, val2);
-        session.setAttribute("loginUser", loginUser);  // ← セッションに保存
+        session.setAttribute("loginUser", loginUser);
 
         return "redirect:/space";
     }
-    
-    /**
-     * ログアウト/セッション破棄の処理
-     * 　遷移元：「ログアウトボタン」ボタン
-     * 　遷移先：ログイン画面(login.html)
-     */
+
+    /* ===============================
+     * ◆ ログアウト
+     * =============================== */
     @RequestMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate();  // ← セッション破棄
+        session.invalidate();
         return "redirect:/login";
     }
 
-    /**
-     * マイページ画面の表示処理
-     * 　遷移元：「マイページ」ボタン
-     * 　遷移先：マイページ画面（mypage.html）
-     */
-    @GetMapping("/mypage")
+    /* ===============================
+     * ◆ 新規登録
+     * =============================== */
+    @RequestMapping("/signup")
+    public String signup(Model model) {
+
+        /*
+         * 【修正点】
+         * signup.html 側で th:object を使っている場合に備え、Model を詰めておく
+         */
+        model.addAttribute("loginclass", new Login());
+
+        return "signup";
+    }
+
+    @PostMapping("/signup/add")
+    public String signup_add(
+            @Validated @ModelAttribute("loginclass") Login loginclass,
+            BindingResult result,
+            Model model) {
+
+        ArrayList<String> errorlist = new ArrayList<>();
+
+        if (result.hasErrors()) {
+            return "signup";
+        }
+
+        // 重複チェック（メール）
+        if (loginRep.existsByMail(loginclass.getMail())) {
+            errorlist.add("※入力されたメールアドレスは既に登録されています。");
+            model.addAttribute("errorlist", errorlist);
+            model.addAttribute("loginclass", loginclass);
+            return "signup";
+        }
+
+        // DB保存
+        loginRep.save(loginclass);
+
+        model.addAttribute("message", "登録が完了しました。ログインしてください。");
+        model.addAttribute("loginclass", new Login());
+        return "login";
+    }
+
+    /* ===============================
+     * ◆ マイページ（予約一覧）
+     * =============================== */
+    @RequestMapping("/mypage")
     public String mypage(HttpSession session, Model model) {
-        
-        // セッションからログインユーザー情報を取得
+
         Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
-            // ログインしていない場合はログイン画面へリダイレクト
             return "redirect:/login";
         }
 
-        // ログインユーザーのIDを取得
-        int userId = loginUser.getID();
+        List<Reservation> reservationList = reservationRep.findByUserId(loginUser.getID());
 
-        // ユーザーに紐づく予約データを全件取得
-        List<Reservation> reservationList = reservationRep.findByUserId(userId);
-
-        // 各予約に対して、スペース情報と時間帯情報を付加する
+        // 予約一覧にスペース名・場所・時間を埋める
         for (Reservation r : reservationList) {
-
-            // スペース情報取得（スペース名・場所）
-            Space space = spaceRep.findById(Long.valueOf(r.getSpaceId())).orElse(null);
-
-            // 時間帯情報取得（時間）
+            Space space = spaceRep.findById((long) r.getSpaceId()).orElse(null);
             SpaceTime time = spaceTimeRep.findById(r.getSpaceTimesId()).orElse(null);
 
             // スペース情報が存在する場合
@@ -142,79 +194,104 @@ public class LoginController {
             if (time != null) {
                 r.setTime(time.getTime());
             }
+
+            // レビュー済み判定
+            r.setReviewed(reviewRep.findByReservationId(r.getId()).isPresent());
         }
 
         model.addAttribute("reservationList", reservationList);
-
         return "mypage";
     }
-    
+
     /*
-     * プロフィール画面の表示
-     * 	画面遷移元：マイページ画面「プロフィール編集」ボタン押下時
+     * マイページ画面「プロフィール編集」ボタン押下時
      * 　画面遷移先：プロフィール画面(profile.html)
      */
     @RequestMapping("/profile")
     public String profile_info(HttpSession session, Model model) {
-    	
-    	Login loginUser = (Login) session.getAttribute("loginUser");
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
-        	return "redirect:/login";
+            return "redirect:/login";
         }
         model.addAttribute("loginUser", loginUser);
-    	
-    	return "profile";
+
+        return "profile";
     }
-    
+
     /*
      * プロフィール編集機能
      * 　画面遷移元：プロフィール画面(profile.html)
      * 　画面遷移先：プロフィール画面(profile.html)
      */
     @PostMapping("/profile/update")
-    public String updateProfile(@RequestParam("name") String name,
-                                @RequestParam("currentPass") String currentPass,
-                                @RequestParam("newPass") String newPass,
-                                HttpSession session,
-                                Model model) {
+    public String updateProfile(
+            @RequestParam("name") String name,
+            @RequestParam(value = "mail", required = false) String mail,
+            @RequestParam("currentPass") String currentPass,
+            @RequestParam("newPass") String newPass,
+            HttpSession session,
+            Model model) {
 
         // セッション確認
         Login loginUser = (Login) session.getAttribute("loginUser");
         if (loginUser == null) {
-        	return "redirect:/login";
+            return "redirect:/login";
         }
 
         // DBから最新ユーザー情報を取得
         Login dbUser = loginRep.findById(loginUser.getID()).orElse(null);
         if (dbUser == null) {
-        	return "redirect:/login";
+            return "redirect:/login";
         }
 
-//　　　　　↓　start パスワード欄の入力有無/入力ケース毎の処理 
-        // パスワード変更の入力があるかどうかを判定
-        boolean isCurrentPassEntered = !currentPass.isEmpty();
-        boolean isNewPassEntered = !newPass.isEmpty();
+        // ↓ start パスワード欄の入力有無/入力ケース毎の処理 
+        boolean isCurrentPassEntered = currentPass != null && !currentPass.isEmpty();
+        boolean isNewPassEntered = newPass != null && !newPass.isEmpty();
 
-        // パターン1　片方だけ入力されていたらエラー
-        if ((isCurrentPassEntered && !isNewPassEntered) || (!isCurrentPassEntered && isNewPassEntered)) {
-            model.addAttribute("error", "パスワードを変更するには両方の項目を入力してください。");
+        // どちらか片方だけ入力されている場合はエラー
+        if (isCurrentPassEntered ^ isNewPassEntered) {
+            model.addAttribute("error", "パスワードを変更する場合は、現在のパスワードと新しいパスワードを両方入力してください。");
             model.addAttribute("loginUser", dbUser);
             return "profile";
         }
 
-        // パターン2　両方入力された場合のみ、パスワードチェックと更新
+        // パスワード変更ありの場合
         if (isCurrentPassEntered && isNewPassEntered) {
+
+            // 現在のパスワード一致チェック
             if (!dbUser.getPass().equals(currentPass)) {
                 model.addAttribute("error", "現在のパスワードが正しくありません。");
                 model.addAttribute("loginUser", dbUser);
                 return "profile";
             }
+
+            // 新しいパスワードが同じならエラー
+            if (currentPass.equals(newPass)) {
+                model.addAttribute("error", "新しいパスワードが現在のパスワードと同じです。");
+                model.addAttribute("loginUser", dbUser);
+                return "profile";
+            }
+
             dbUser.setPass(newPass);
         }
-//　　　　　↑　end 
+        // ↑ end
 
         // 名前の更新
         dbUser.setName(name);
+
+        // メール更新（画面に項目がある場合だけ）
+        if (mail != null && !mail.isBlank()) {
+
+            // 変更している場合のみ重複チェック
+            if (!mail.equals(dbUser.getMail()) && loginRep.existsByMail(mail)) {
+                model.addAttribute("error", "このメールアドレスは既に登録されています。");
+                model.addAttribute("loginUser", dbUser);
+                return "profile";
+            }
+
+            dbUser.setMail(mail);
+        }
 
         // DB保存とセッション更新
         loginRep.save(dbUser);
@@ -225,6 +302,83 @@ public class LoginController {
         return "profile";
     }
 
+    /* ===============================
+     * ◆ 予約キャンセル（ユーザー）
+     * =============================== */
+    @PostMapping("/reservation/{id}/cancel")
+    @Transactional
+    public String cancelReservation(
+            @PathVariable int id,
+            HttpSession session,
+            Model model) {
 
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
 
+        Reservation reservation = reservationRep.findById(id).orElse(null);
+        if (reservation == null || reservation.getUserId() != loginUser.getID()) {
+            return "redirect:/mypage";
+        }
+
+        // 却下/キャンセル済みは何もしない
+        if ("REJECTED".equals(reservation.getStatus()) || "CANCELLED".equals(reservation.getStatus())) {
+            return "redirect:/mypage";
+        }
+
+        // 過去日の予約はキャンセル不可（簡易）
+        if (reservation.getReservationDay() != null && reservation.getReservationDay().isBefore(LocalDate.now())) {
+            return "redirect:/mypage";
+        }
+
+        // 仮押さえしている座席数を戻す（seat をロックして安全に更新）
+        Seat seat = seatRep.findBySpaceIdAndSpaceTimesIdForUpdate(
+                reservation.getSpaceId(),
+                reservation.getSpaceTimesId()
+        );
+        if (seat != null && seat.getSeatCount() != null) {
+            seat.setSeatCount(seat.getSeatCount() + 1);
+            seatRep.save(seat);
+        }
+
+        reservation.setStatus("CANCELLED");
+        reservationRep.save(reservation);
+
+        return "redirect:/mypage";
+    }
+
+    /* ===============================
+     * ◆ 利用済みにする（ユーザー）
+     * =============================== */
+    @PostMapping("/reservation/{id}/used")
+    public String markUsed(
+            @PathVariable int id,
+            HttpSession session) {
+
+        Login loginUser = (Login) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
+
+        Reservation reservation = reservationRep.findById(id).orElse(null);
+        if (reservation == null || reservation.getUserId() != loginUser.getID()) {
+            return "redirect:/mypage";
+        }
+
+        // 承認済みのみ利用済みにできる
+        if (!"APPROVED".equals(reservation.getStatus())) {
+            return "redirect:/mypage";
+        }
+
+        // 予約日が今日以前なら利用済みOK（必要に応じて厳密化）
+        if (reservation.getReservationDay() != null && reservation.getReservationDay().isAfter(LocalDate.now())) {
+            return "redirect:/mypage";
+        }
+
+        reservation.setStatus("USED");
+        reservationRep.save(reservation);
+
+        return "redirect:/mypage";
+    }
 }

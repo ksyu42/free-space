@@ -2,91 +2,80 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>予約状況（管理者）</title>
+    <title>予約管理</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
-    <link rel="stylesheet" th:href="@{/css/admin_reservations.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
 
-<!-- エラーメッセージ -->
-<div th:if="${errorMessage != null}" class="error-message">
-    <p th:text="${errorMessage}"></p>
-</div>
-
-<!-- ナビゲーション -->
-<div class="navigation">
-    <div class="nav-left">
-        &nbsp;
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">
+            <a th:href="@{/admin/spaces}" class="btn">スペース一覧</a>
+            <a th:href="@{/admin/logout}" class="btn">ログアウト</a>
+        </div>
     </div>
-    <div class="nav-right">
-        <a th:href="@{/admin/dashboard}" class="btn">ダッシュボード</a>
-        <a th:href="@{/logout}" class="btn">ログアウト</a>
+
+    <div class="title-bar">
+        <h1>予約管理</h1>
     </div>
-</div>
 
-<!-- タイトル -->
-<div class="title-bar">
-    <h1>予約状況（管理者）</h1>
-</div>
+    <div class="admin-area">
 
-<p>件数：<span th:text="${reservationList.size()}"></span></p>
+        <table class="space-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>ユーザーID</th>
+                    <th>スペースID</th>
+                    <th>予約日</th>
+                    <th>時間帯ID</th>
+                    <th>状態</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
 
-<!-- 予約なし -->
-<div th:if="${#lists.isEmpty(reservationList)}" class="no-reservation">
-    現在、あなたが管理しているスペースには予約がありません。
-</div>
+            <tbody>
+                <tr th:each="r : ${reservationList}">
+                    <td th:text="${r.id}"></td>
+                    <td th:text="${r.userId}"></td>
+                    <td th:text="${r.spaceId}"></td>
+                    <td th:text="${r.reservationDay}"></td>
+                    <td th:text="${r.spaceTimesId}"></td>
 
-<!-- 予約あり -->
-<div th:if="${!#lists.isEmpty(reservationList)}">
+                    <!-- 【修正点】英語ステータス → 日本語表示 -->
+                    <td th:switch="${r.status}">
+                        <span th:case="'PENDING'">承認待ち</span>
+                        <span th:case="'APPROVED'">承認済み</span>
+                        <span th:case="'REJECTED'">却下</span>
+                        <span th:case="'CANCELLED'">キャンセル</span>
+                        <span th:case="'USED'">利用済み</span>
+                        <span th:case="*">不明</span>
+                    </td>
 
-    <table class="reservation-table">
-        <thead>
-            <tr>
-                <th>スペース名</th>
-                <th>場所</th>
-                <th>利用日</th>
-                <th>時間</th>
-                <th>利用者</th>
-                <th>状態</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr th:each="r : ${reservationList}">
-                <td th:text="${r.spaceName}"></td>
-                <td th:text="${r.location}"></td>
-                <td th:text="${r.reservationDay}"></td>
-                <td th:text="${r.time}"></td>
-                <td th:text="${r.userName}"></td>
-                <td th:text="${r.status}"></td>
-
-                <td>
-                    <!-- ★ 承認・却下は PENDING のみ表示 -->
-                    <div th:if="${r.status == 'PENDING'}">
-
-                        <form th:action="@{/admin/reservations/{id}/approve(id=${r.id})}"
+                    <td>
+                        <!-- 承認/却下（既存仕様に合わせて） -->
+                        <form th:if="${r.status == 'PENDING'}"
+                              th:action="@{'/admin/reservations/' + ${r.id} + '/approve'}"
                               method="post" style="display:inline;">
-                            <button type="submit" class="approve-btn">承認</button>
+                            <button type="submit" class="btn-orange">承認</button>
                         </form>
 
-                        <form th:action="@{/admin/reservations/{id}/reject(id=${r.id})}"
+                        <form th:if="${r.status == 'PENDING'}"
+                              th:action="@{'/admin/reservations/' + ${r.id} + '/reject'}"
                               method="post" style="display:inline;">
-                            <button type="submit" class="reject-btn">却下</button>
+                            <button type="submit" class="delete-btn">却下</button>
                         </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-                    </div>
+        <div style="margin-top: 16px;">
+            <a th:href="@{/admin/dashboard}" class="btn">ダッシュボードへ戻る</a>
+        </div>
 
-                    <!-- 承認済み／却下済み -->
-                    <div th:if="${r.status != 'PENDING'}">
-                        －
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-</div>
+    </div>
 
 </body>
 </html>

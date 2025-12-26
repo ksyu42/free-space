@@ -7,15 +7,35 @@
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 <body>
-    <div class="navigation"><div class="nav-left">&nbsp;</div><div class="nav-right">&nbsp;</div></div>
-    <div class="title-bar"><h1>管理者ログイン画面</h1></div>
+
+    <!-- ナビゲーション（見た目合わせ） -->
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">&nbsp;</div>
+    </div>
+
+    <div class="title-bar">
+        <h1>管理者ログイン画面</h1>
+    </div>
 
     <div class="form-wrapper">
-        <form th:action="@{/admin/check}" method="post">
+
+        <!--
+            AdminController は @RequestMapping("/admin") + @PostMapping("/login") のため
+            送信先は /admin/login
+         -->
+        <form th:action="@{/admin/login}" method="post">
+
             <div class="form-group">
                 <input type="text" name="adminNumber" placeholder="管理番号" required>
             </div>
+
             <div class="form-group">
+                <!--
+                    【修正点】
+                    Controller側が @RequestParam("password") を要求しているため、
+                    input name を "password" に合わせる（ここがズレると400になる）
+                 -->
                 <input type="password" name="password" placeholder="パスワード" required>
             </div>
 
@@ -25,10 +45,12 @@
                 <button type="submit" class="btn-orange">ログイン</button>
             </div>
         </form>
+
         <!-- ユーザーログインリンク -->
         <p class="admin-link">
             <a th:href="@{/login}">戻る</a>
         </p>
     </div>
+
 </body>
 </html>

@@ -13,81 +13,90 @@
 </head>
 <body>
 
-<!-- ナビ -->
-<div class="navigation">
-    <div class="nav-left"></div>
-    <div class="nav-right">
-        <a th:href="@{/admin/space/new}" class="btn">＋ スペースを作成</a>
-        <a th:href="@{/logout}" class="btn">ログアウト</a>
+    <!-- ナビ -->
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">
+            <!-- 管理者ログアウト -->
+            <a th:href="@{/admin/logout}" class="btn">ログアウト</a>
+        </div>
     </div>
-</div>
 
-<!-- タイトル -->
-<div class="title-bar">
-    <h1>スペース管理</h1>
-</div>
+    <div class="title-bar">
+        <h1>スペース管理</h1>
+    </div>
 
-<!-- スペース一覧 -->
-<div class="space-list">
+    <div class="admin-area">
 
-    <div class="space-card" th:each="space : ${spaceList}">
+        <!--
+            【修正点】
+            新規作成は SpaceController: GET /admin/spaces/new
+         -->
+        <div class="top-actions">
+            <a th:href="@{/admin/spaces/new}" class="add-btn">＋ 新規作成</a>
+        </div>
 
-        <!-- スペース基本情報 -->
-        <h2 th:text="${space.name}">スペース名</h2>
-        <p class="location" th:text="${space.location}">場所</p>
-
-        <!-- 時間帯・座席数テーブル -->
-        <table class="seat-table">
+        <table class="space-table">
             <thead>
                 <tr>
-                    <th>時間帯</th>
-                    <th>座席数</th>
-                    <th>操作</th>
+                    <th>ID</th>
+                    <th>スペース名</th>
+                    <th>場所</th>
+                    <th>開始</th>
+                    <th>終了</th>
+                    <th>座席数（時間帯ごと）</th>
+                    <th>削除</th>
                 </tr>
             </thead>
+
             <tbody>
+                <tr th:each="space : ${spaceList}">
+                    <td th:text="${space.id}"></td>
+                    <td th:text="${space.name}"></td>
+                    <td th:text="${space.location}"></td>
+                    <td th:text="${space.availableFrom}"></td>
+                    <td th:text="${space.availableTo}"></td>
 
-                <!-- 時間帯ごと -->
-                <tr th:each="time : ${timeList}">
-                    <td th:text="${time.time}">09:00〜10:00</td>
-
+                    <!-- 座席数（JSで + / - を叩く想定の既存仕様を維持） -->
                     <td>
-                        <span
-                            th:id="'seatCount-' + ${space.id} + '-' + ${time.spaceTimesId}"
-                            th:text="${seatMap[space.id + '-' + time.spaceTimesId] != null
-                                      ? seatMap[space.id + '-' + time.spaceTimesId]
-                                      : 0}">
-                            0
-                        </span>
+                        <div th:each="ts : ${timeList}" class="seat-row">
+                            <span th:text="${ts.time}"></span>
+
+                            <button type="button"
+                                    class="seat-btn minus"
+                                    th:attr="data-space-id=${space.id},data-time-id=${ts.id}">
+                                −
+                            </button>
+
+                            <span class="seat-count"
+                                  th:attr="id=${'seat-' + space.id + '-' + ts.id}"
+                                  th:text="${seatMap[space.id + '-' + ts.id]}">
+                            </span>
+
+                            <button type="button"
+                                    class="seat-btn plus"
+                                    th:attr="data-space-id=${space.id},data-time-id=${ts.id}">
+                                ＋
+                            </button>
+                        </div>
                     </td>
 
-                    <td class="seat-btns">
-					    <button type="button"
-					            th:onclick="'changeSeat(' + ${space.id} + ',' + ${time.spaceTimesId} + ',1)'">
-					        ＋
-					    </button>
-					
-					    <button type="button"
-					            th:onclick="'changeSeat(' + ${space.id} + ',' + ${time.spaceTimesId} + ',-1)'">
-					        −
-					    </button>
-					</td>
-
+                    <td>
+                        <!--
+                            【修正点】
+                            削除は SpaceController: POST /admin/spaces/delete/{id}
+                         -->
+                        <form th:action="@{/admin/spaces/delete/{id}(id=${space.id})}"
+                              method="post"
+                              onsubmit="return confirm('このスペースを削除しますか？');">
+                            <button type="submit" class="delete-btn">削除</button>
+                        </form>
+                    </td>
                 </tr>
-
             </tbody>
         </table>
 
-        <!-- スペース削除 -->
-        <form th:action="@{/admin/space/delete/{id}(id=${space.id})}"
-              method="post"
-              onsubmit="return confirm('このスペースを削除しますか？');">
-            <button type="submit" class="delete-btn">削除</button>
-        </form>
-
     </div>
-
-</div>
 
 </body>
 </html>

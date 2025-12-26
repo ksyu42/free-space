@@ -11,6 +11,16 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+/*
+ * 予約情報
+ * 
+ * status：
+ *  PENDING   … 申請中（仮押さえ）
+ *  APPROVED  … 承認済み
+ *  REJECTED  … 却下
+ *  CANCELLED … キャンセル
+ *  USED      … 利用済み（レビュー可能）
+ */
 @Entity
 @Table(name = "reservations")
 public class Reservation {
@@ -30,20 +40,26 @@ public class Reservation {
 
     @Column(name = "reservation_day")
     private LocalDate reservationDay;
-    
-    @Column(name = "status", nullable = false)
-    private String status = "PENDING"; // PENDING / APPROVED / REJECTED
 
+    @Column(name = "status", nullable = false)
+    private String status = "PENDING"; // PENDING / APPROVED / REJECTED / CANCELLED / USED
+
+    /*
+     * 予約日が未設定のまま保存されるのを防ぐ（保険）
+     */
     @PrePersist
-    public void onPrePersist() {
-        // 予約日が未指定の場合のみ、登録日(=今日)を入れる（保険）
-        // ※本来は画面で必須入力させるため、基本は controller から setReservationDay される想定
+    public void prePersist() {
         if (this.reservationDay == null) {
             this.reservationDay = LocalDate.now();
         }
+        if (this.status == null || this.status.isBlank()) {
+            this.status = "PENDING";
+        }
     }
 
-    // 表示用フィールド（DBには持たない）
+    /* ===========================
+     * 画面表示用（DBには保存しない）
+     * =========================== */
     @Transient
     private String spaceName;
 
@@ -54,9 +70,10 @@ public class Reservation {
     private String time;
 
     @Transient
-    private String userName;   // ← 管理者画面用：予約者名
+    private String userName;
 
-    // ------ Getter / Setter ------
+    @Transient
+    private boolean reviewed; // レビュー済みフラグ
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
@@ -84,8 +101,10 @@ public class Reservation {
 
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
-    
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public boolean isReviewed() { return reviewed; }
+    public void setReviewed(boolean reviewed) { this.reviewed = reviewed; }
 }
