@@ -5,57 +5,129 @@
     <title>スペース登録/編集</title>
 
     <!-- 管理者共通CSS -->
+    <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 
 <body>
 
-<!-- タイトルバー（既存デザイン流用） -->
-<div class="title-bar">
-    <h1>管理者画面</h1>
-</div>
-
-<div class="form-container">
-
-    <!--
-        【修正点】
-        SpaceController は /admin/spaces 配下で save は POST /save
-        → フルパスは /admin/spaces/save
-     -->
-    <form th:action="@{/admin/spaces/save}" method="post">
-
-        <!-- ID（編集時のみ入る想定：Controller側が受け取れる形にしておく） -->
-        <input type="hidden" name="id" th:value="${space != null ? space.id : 0}">
-
-        <div class="form-group">
-            <label for="name">スペース名</label>
-            <input type="text" id="name" name="name" th:value="${space != null ? space.name : ''}" required>
+    <!-- ナビ（他管理者画面と合わせる） -->
+    <div class="navigation">
+        <div class="nav-left">&nbsp;</div>
+        <div class="nav-right">
+            <a th:href="@{/admin/dashboard}" class="btn">ダッシュボード</a>
+            <a th:href="@{/admin/spaces}" class="btn">スペース一覧</a>
+            <a th:href="@{/admin/logout}" class="btn">ログアウト</a>
         </div>
+    </div>
 
-        <div class="form-group">
-            <label for="location">場所</label>
-            <input type="text" id="location" name="location" th:value="${space != null ? space.location : ''}" required>
-        </div>
+    <!-- タイトルバー（既存デザイン流用） -->
+    <div class="title-bar">
+        <h1>スペース登録/編集</h1>
+    </div>
 
-        <div class="form-group">
-            <label for="availableFrom">開始時間</label>
-            <input type="time" id="availableFrom" name="availableFrom" th:value="${space != null ? space.availableFrom : ''}" required>
-        </div>
+    <div class="form-container">
 
-        <div class="form-group">
-            <label for="availableTo">終了時間</label>
-            <input type="time" id="availableTo" name="availableTo" th:value="${space != null ? space.availableTo : ''}" required>
-        </div>
+        <!--
+            SpaceController は /admin/spaces 配下で save は POST /save
+            → フルパスは /admin/spaces/save
+        -->
+        <form th:action="@{/admin/spaces/save}" method="post">
 
-        <div class="form-button-area">
-            <button type="submit" class="form-submit-btn">登録</button>
+            <!-- ID（編集時のみ入る想定：Controller側が受け取れる形にしておく） -->
+            <input type="hidden" name="id" th:value="${space != null ? space.id : 0}">
 
-            <!-- 戻り先も /admin/spaces に統一 -->
-            <a th:href="@{/admin/spaces}" class="form-back-link">戻る</a>
-        </div>
+            <div class="form-group">
+                <label for="name">スペース名</label>
+                <input type="text" id="name" name="name" th:value="${space != null ? space.name : ''}" required>
+            </div>
 
-    </form>
-</div>
+            <div class="form-group">
+                <label for="location">場所</label>
+                <input type="text" id="location" name="location" th:value="${space != null ? space.location : ''}" required>
+            </div>
+
+            <!--
+                【要件対応】
+                利用開始/終了時間は「1時間おき」で設定できればOK（分指定は不要）
+                → select で「00:00〜23:00」のみ選択できるようにする
+            -->
+            <div class="form-group">
+                <label for="availableFrom">開始時間</label>
+                <select id="availableFrom" name="availableFrom" required>
+                    <option value="00:00" th:selected="${space != null and space.availableFrom == '00:00'}">00:00</option>
+                    <option value="01:00" th:selected="${space != null and space.availableFrom == '01:00'}">01:00</option>
+                    <option value="02:00" th:selected="${space != null and space.availableFrom == '02:00'}">02:00</option>
+                    <option value="03:00" th:selected="${space != null and space.availableFrom == '03:00'}">03:00</option>
+                    <option value="04:00" th:selected="${space != null and space.availableFrom == '04:00'}">04:00</option>
+                    <option value="05:00" th:selected="${space != null and space.availableFrom == '05:00'}">05:00</option>
+                    <option value="06:00" th:selected="${space != null and space.availableFrom == '06:00'}">06:00</option>
+                    <option value="07:00" th:selected="${space != null and space.availableFrom == '07:00'}">07:00</option>
+                    <option value="08:00" th:selected="${space != null and space.availableFrom == '08:00'}">08:00</option>
+                    <option value="09:00" th:selected="${space != null and space.availableFrom == '09:00'}">09:00</option>
+                    <option value="10:00" th:selected="${space != null and space.availableFrom == '10:00'}">10:00</option>
+                    <option value="11:00" th:selected="${space != null and space.availableFrom == '11:00'}">11:00</option>
+                    <option value="12:00" th:selected="${space != null and space.availableFrom == '12:00'}">12:00</option>
+                    <option value="13:00" th:selected="${space != null and space.availableFrom == '13:00'}">13:00</option>
+                    <option value="14:00" th:selected="${space != null and space.availableFrom == '14:00'}">14:00</option>
+                    <option value="15:00" th:selected="${space != null and space.availableFrom == '15:00'}">15:00</option>
+                    <option value="16:00" th:selected="${space != null and space.availableFrom == '16:00'}">16:00</option>
+                    <option value="17:00" th:selected="${space != null and space.availableFrom == '17:00'}">17:00</option>
+                    <option value="18:00" th:selected="${space != null and space.availableFrom == '18:00'}">18:00</option>
+                    <option value="19:00" th:selected="${space != null and space.availableFrom == '19:00'}">19:00</option>
+                    <option value="20:00" th:selected="${space != null and space.availableFrom == '20:00'}">20:00</option>
+                    <option value="21:00" th:selected="${space != null and space.availableFrom == '21:00'}">21:00</option>
+                    <option value="22:00" th:selected="${space != null and space.availableFrom == '22:00'}">22:00</option>
+                    <option value="23:00" th:selected="${space != null and space.availableFrom == '23:00'}">23:00</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="availableTo">終了時間</label>
+                <select id="availableTo" name="availableTo" required>
+                    <option value="00:00" th:selected="${space != null and space.availableTo == '00:00'}">00:00</option>
+                    <option value="01:00" th:selected="${space != null and space.availableTo == '01:00'}">01:00</option>
+                    <option value="02:00" th:selected="${space != null and space.availableTo == '02:00'}">02:00</option>
+                    <option value="03:00" th:selected="${space != null and space.availableTo == '03:00'}">03:00</option>
+                    <option value="04:00" th:selected="${space != null and space.availableTo == '04:00'}">04:00</option>
+                    <option value="05:00" th:selected="${space != null and space.availableTo == '05:00'}">05:00</option>
+                    <option value="06:00" th:selected="${space != null and space.availableTo == '06:00'}">06:00</option>
+                    <option value="07:00" th:selected="${space != null and space.availableTo == '07:00'}">07:00</option>
+                    <option value="08:00" th:selected="${space != null and space.availableTo == '08:00'}">08:00</option>
+                    <option value="09:00" th:selected="${space != null and space.availableTo == '09:00'}">09:00</option>
+                    <option value="10:00" th:selected="${space != null and space.availableTo == '10:00'}">10:00</option>
+                    <option value="11:00" th:selected="${space != null and space.availableTo == '11:00'}">11:00</option>
+                    <option value="12:00" th:selected="${space != null and space.availableTo == '12:00'}">12:00</option>
+                    <option value="13:00" th:selected="${space != null and space.availableTo == '13:00'}">13:00</option>
+                    <option value="14:00" th:selected="${space != null and space.availableTo == '14:00'}">14:00</option>
+                    <option value="15:00" th:selected="${space != null and space.availableTo == '15:00'}">15:00</option>
+                    <option value="16:00" th:selected="${space != null and space.availableTo == '16:00'}">16:00</option>
+                    <option value="17:00" th:selected="${space != null and space.availableTo == '17:00'}">17:00</option>
+                    <option value="18:00" th:selected="${space != null and space.availableTo == '18:00'}">18:00</option>
+                    <option value="19:00" th:selected="${space != null and space.availableTo == '19:00'}">19:00</option>
+                    <option value="20:00" th:selected="${space != null and space.availableTo == '20:00'}">20:00</option>
+                    <option value="21:00" th:selected="${space != null and space.availableTo == '21:00'}">21:00</option>
+                    <option value="22:00" th:selected="${space != null and space.availableTo == '22:00'}">22:00</option>
+                    <option value="23:00" th:selected="${space != null and space.availableTo == '23:00'}">23:00</option>
+                </select>
+            </div>
+
+            <div class="form-button-area">
+                <button type="submit" class="form-submit-btn">登録</button>
+
+                <!-- 戻り先も /admin/spaces に統一 -->
+                <a th:href="@{/admin/spaces}" class="form-back-link">戻る</a>
+
+                <!-- ダッシュボードへ戻るボタン -->
+                <a th:href="@{/admin/dashboard}" class="form-back-link">ダッシュボードへ戻る</a>
+            </div>
+
+        </form>
+
+        <!--
+            ※座席数（時間帯ごと）の編集は「スペース一覧」画面で行う想定
+        -->
+    </div>
 
 </body>
 </html>

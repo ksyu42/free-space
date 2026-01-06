@@ -16,4 +16,9 @@ public class TimeSeatDto {
     public int getSeatCount() {
         return seatCount;
     }
+
+	public int getSpaceTimesId() {
+		// TODO 自動生成されたメソッド・スタブ
+		return 0;
+	}
 }

@@ -5,13 +5,15 @@
     <title>予約管理</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/admin_reservations.css}">
 </head>
 <body>
 
     <div class="navigation">
         <div class="nav-left">&nbsp;</div>
         <div class="nav-right">
-            <a th:href="@{/admin/spaces}" class="btn">スペース一覧</a>
+            <a th:href="@{/admin/dashboard}" class="btn">ダッシュボード</a>
+            <a th:href="@{/admin/spaces}" class="btn">スペース管理</a>
             <a th:href="@{/admin/logout}" class="btn">ログアウト</a>
         </div>
     </div>
@@ -22,14 +24,60 @@
 
     <div class="admin-area">
 
+        <!--
+            【ブラッシュアップ】
+            フィルタ（状態別）を追加して、見たい予約だけ絞り込めるようにする
+            ※ AdminController の /admin/reservations?status=... で制御
+        -->
+        <div class="filter-area">
+            <a class="btn"
+               th:classappend="${selectedStatus == 'ALL'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='ALL')}">
+                全て(<span th:text="${statusCount['ALL']}">0</span>)
+            </a>
+
+            <a class="btn"
+               th:classappend="${selectedStatus == 'PENDING'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='PENDING')}">
+                承認待ち(<span th:text="${statusCount['PENDING']}">0</span>)
+            </a>
+
+            <a class="btn"
+               th:classappend="${selectedStatus == 'APPROVED'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='APPROVED')}">
+                承認済(<span th:text="${statusCount['APPROVED']}">0</span>)
+            </a>
+
+            <a class="btn"
+               th:classappend="${selectedStatus == 'REJECTED'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='REJECTED')}">
+                却下(<span th:text="${statusCount['REJECTED']}">0</span>)
+            </a>
+
+            <a class="btn"
+               th:classappend="${selectedStatus == 'CANCELLED'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='CANCELLED')}">
+                キャンセル(<span th:text="${statusCount['CANCELLED']}">0</span>)
+            </a>
+
+            <a class="btn"
+               th:classappend="${selectedStatus == 'USED'} ? ' active' : ''"
+               th:href="@{/admin/reservations(status='USED')}">
+                利用済み(<span th:text="${statusCount['USED']}">0</span>)
+            </a>
+        </div>
+
+        <div class="message success" th:if="${message}" th:text="${message}"></div>
+        <div class="message error" th:if="${error}" th:text="${error}"></div>
+
         <table class="space-table">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>ユーザーID</th>
-                    <th>スペースID</th>
+                    <th>予約者</th>
+                    <th>スペース</th>
                     <th>予約日</th>
-                    <th>時間帯ID</th>
+                    <th>時間</th>
                     <th>状態</th>
                     <th>操作</th>
                 </tr>
@@ -38,34 +86,57 @@
             <tbody>
                 <tr th:each="r : ${reservationList}">
                     <td th:text="${r.id}"></td>
-                    <td th:text="${r.userId}"></td>
-                    <td th:text="${r.spaceId}"></td>
-                    <td th:text="${r.reservationDay}"></td>
-                    <td th:text="${r.spaceTimesId}"></td>
 
-                    <!-- 【修正点】英語ステータス → 日本語表示 -->
-                    <td th:switch="${r.status}">
-                        <span th:case="'PENDING'">承認待ち</span>
-                        <span th:case="'APPROVED'">承認済み</span>
-                        <span th:case="'REJECTED'">却下</span>
-                        <span th:case="'CANCELLED'">キャンセル</span>
-                        <span th:case="'USED'">利用済み</span>
-                        <span th:case="*">不明</span>
+                    <!-- userId だけだと分かりづらいので名前を表示（なければID） -->
+                    <td>
+                        <span th:text="${r.userName != null && !#strings.isEmpty(r.userName) ? r.userName : 'ユーザーID:' + r.userId}"></span>
                     </td>
 
                     <td>
-                        <!-- 承認/却下（既存仕様に合わせて） -->
-                        <form th:if="${r.status == 'PENDING'}"
-                              th:action="@{'/admin/reservations/' + ${r.id} + '/approve'}"
-                              method="post" style="display:inline;">
-                            <button type="submit" class="btn-orange">承認</button>
-                        </form>
+                        <div>
+                            <span th:text="${r.spaceName != null && !#strings.isEmpty(r.spaceName) ? r.spaceName : 'スペースID:' + r.spaceId}"></span>
+                        </div>
+                        <div class="sub-text" th:if="${r.location != null}" th:text="${r.location}"></div>
+                    </td>
 
-                        <form th:if="${r.status == 'PENDING'}"
-                              th:action="@{'/admin/reservations/' + ${r.id} + '/reject'}"
-                              method="post" style="display:inline;">
-                            <button type="submit" class="delete-btn">却下</button>
-                        </form>
+                    <td th:text="${r.reservationDay}"></td>
+
+                    <td>
+                        <span th:text="${r.time != null ? r.time : '時間帯ID:' + r.spaceTimesId}"></span>
+                    </td>
+
+                    <!-- 英語ステータス → 日本語表示 -->
+                    <td th:switch="${r.status}">
+                        <span th:case="'PENDING'" class="badge pending">承認待ち</span>
+                        <span th:case="'APPROVED'" class="badge approved">承認済</span>
+                        <span th:case="'REJECTED'" class="badge rejected">却下</span>
+                        <span th:case="'CANCELLED'" class="badge cancelled">キャンセル</span>
+                        <span th:case="'USED'" class="badge used">利用済み</span>
+                        <span th:case="*" class="badge">不明</span>
+                    </td>
+
+                    <td>
+                        <!--
+                            【ブラッシュアップ】
+                            承認待ちだけ「承認/却下」を出す
+                            それ以外は操作なし
+                         -->
+                        <div th:if="${r.status == 'PENDING'}">
+                            <form th:action="@{'/admin/reservations/' + ${r.id} + '/approve'}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="btn-orange"
+                                        onclick="return confirm('この予約を承認しますか？');">承認</button>
+                            </form>
+
+                            <form th:action="@{'/admin/reservations/' + ${r.id} + '/reject'}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="delete-btn"
+                                        onclick="return confirm('この予約を却下しますか？');">却下</button>
+                            </form>
+                        </div>
+                        <div th:if="${r.status != 'PENDING'}">
+                            <span class="sub-text">操作なし</span>
+                        </div>
                     </td>
                 </tr>
             </tbody>

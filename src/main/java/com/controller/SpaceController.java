@@ -1,6 +1,8 @@
 package com.controller;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
@@ -14,6 +16,7 @@ import com.entity.Admin;
 import com.entity.Reservation;
 import com.entity.Space;
 import com.entity.Seat;
+import com.entity.SpaceTime;
 import com.repository.ReservationRepository;
 import com.repository.ReviewRepository;
 import com.repository.SeatRepository;
@@ -53,8 +56,36 @@ public class SpaceController {
             return "redirect:/admin/login";
         }
 
+        /*
+         * 【修正点】
+         * 画面で「時間帯ごとの座席数」を一覧表示するため、
+         * spaceList / timeList / seatMap を作って渡す
+         */
         List<Space> spaces = spaceRep.findByAdminId((long) adminUser.getID());
+        List<SpaceTime> timeList = timeRep.findAll();
+
+        // key: "<spaceId>-<spaceTimesId>" / value: seatCount
+        Map<String, Integer> seatMap = new HashMap<>();
+
+        for (Space s : spaces) {
+            for (SpaceTime t : timeList) {
+
+                Seat seat = seatRep.findBySpaceIdAndSpaceTimesId(s.getId().intValue(), t.getSpaceTimesId());
+                int count = 0;
+                if (seat != null) {
+                    count = seat.getSeatCount();
+                }
+
+                seatMap.put(s.getId() + "-" + t.getSpaceTimesId(), count);
+            }
+        }
+
+        // 既存で "spaces" を参照している画面があっても壊れないよう、両方入れる
         model.addAttribute("spaces", spaces);
+
+        model.addAttribute("spaceList", spaces);
+        model.addAttribute("timeList", timeList);
+        model.addAttribute("seatMap", seatMap);
 
         return "admin/space_list";
     }
@@ -117,6 +148,21 @@ public class SpaceController {
         // admin_id を必ず自分にする（画面改ざん防止）
         space.setAdminId((long) adminUser.getID());
 
+        // 編集時は他人のデータを更新できないようにする
+        if (space.getId() != null && space.getId() > 0) {
+            Space db = spaceRep.findById(space.getId()).orElse(null);
+            if (db == null || !db.getAdminId().equals((long) adminUser.getID())) {
+                return "redirect:/admin/spaces";
+            }
+        } else {
+            // 新規時の id 受け取りが 0 の場合は null にして登録
+            space.setId(null);
+        }
+
+        // 【要件対応】時間は1時間おき（分は00固定）にする
+        space.setAvailableFrom(normalizeHour(space.getAvailableFrom()));
+        space.setAvailableTo(normalizeHour(space.getAvailableTo()));
+
         Space saved = spaceRep.save(space);
 
         // 座席数登録（時間帯ごと）
@@ -144,7 +190,7 @@ public class SpaceController {
     }
 
     /* ===============================
-     * ◆ スペース削除
+     * ◆ 削除
      * =============================== */
     @PostMapping("/delete/{id}")
     @Transactional
@@ -160,11 +206,11 @@ public class SpaceController {
             return "redirect:/admin/spaces";
         }
 
-        // 予約が残っている場合の扱い：今回は「関連をまとめて削除」する
-        // ※運用として「過去データを残したい」場合は論理削除にするなど検討する
+        // 予約・レビューが紐づいている場合は先に削除する
         List<Reservation> reservations = reservationRep.findBySpaceId(space.getId().intValue());
         if (reservations != null && !reservations.isEmpty()) {
-            // レビューも削除（reviews.space_id）
+
+            // レビュー削除
             reviewRep.deleteBySpaceId(space.getId().intValue());
             // 予約削除
             reservationRep.deleteBySpaceId(space.getId().intValue());
@@ -177,5 +223,29 @@ public class SpaceController {
         spaceRep.deleteById(id);
 
         return "redirect:/admin/spaces";
+    }
+
+    /*
+     * 入力された時間文字列を「HH:00」に丸める
+     * 例）"09:30" → "09:00"
+     *
+     * ※HTML側も select で1時間おきにしているが、念のためサーバー側でも整形する
+     */
+    private String normalizeHour(String time) {
+
+        if (time == null || time.isBlank()) {
+            return time;
+        }
+
+        // "HH:mm" 想定（違う形式でも例外にならないようにする）
+        try {
+            String[] parts = time.split(":", 2);
+            int hour = Integer.parseInt(parts[0]);
+            if (hour < 0) hour = 0;
+            if (hour > 23) hour = 23;
+            return String.format("%02d:00", hour);
+        } catch (Exception e) {
+            return time;
+        }
     }
 }

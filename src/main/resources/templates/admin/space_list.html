@@ -6,10 +6,65 @@
 
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-    <link rel="stylesheet" th:href="@{/css/admin_spaces.css}">
+    <link rel="stylesheet" th:href="@{/css/admin_space.css}">
 
-    <!-- 座席数操作用 JS -->
-    <script th:src="@{/js/admin-seat.js}"></script>
+    <!--
+        管理者用：座席数を増減する処理
+        ※ AdminController の POST /admin/spaces/{spaceId}/seats を呼び出す
+     -->
+    <script>
+        function changeSeat(spaceId, spaceTimesId, diff) {
+
+            // 座席数表示用の span 要素を取得
+            const seatElemId = `seatCount-${spaceId}-${spaceTimesId}`;
+            const seatElem = document.getElementById(seatElemId);
+
+            if (!seatElem) {
+                console.warn("座席数表示要素が見つかりません:", seatElemId);
+                return;
+            }
+
+            // 現在値を取得（未設定は0）
+            let current = parseInt((seatElem.innerText || "0"), 10);
+            if (isNaN(current)) current = 0;
+
+            // 次の値（0未満にはしない）
+            let next = current + diff;
+            if (next < 0) next = 0;
+
+            /*
+             * サーバーへ更新リクエスト送信
+             * /admin/spaces/{spaceId}/seats に JSON で POST
+             *
+             * ※コントローラ側は List<TimeSeatDto> を受け取るため
+             *   1件だけ配列で送る
+             */
+            fetch(`/admin/spaces/${spaceId}/seats`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify([{
+                    spaceTimesId: spaceTimesId,
+                    seatCount: next
+                }])
+            })
+            .then(response => {
+                if (!response.ok) {
+                    alert("座席数の更新に失敗しました");
+                    throw new Error("seat update failed");
+                }
+                return response.json();
+            })
+            .then(_ => {
+                // 画面表示を更新
+                seatElem.innerText = String(next);
+            })
+            .catch(_ => {
+                // 何もしない（alertは上で出している）
+            });
+        }
+    </script>
 </head>
 <body>
 
@@ -17,7 +72,8 @@
     <div class="navigation">
         <div class="nav-left">&nbsp;</div>
         <div class="nav-right">
-            <!-- 管理者ログアウト -->
+            <a th:href="@{/admin/dashboard}" class="btn">ダッシュボード</a>
+            <a th:href="@{/admin/reservations}" class="btn">予約管理</a>
             <a th:href="@{/admin/logout}" class="btn">ログアウト</a>
         </div>
     </div>
@@ -28,12 +84,10 @@
 
     <div class="admin-area">
 
-        <!--
-            【修正点】
-            新規作成は SpaceController: GET /admin/spaces/new
-         -->
         <div class="top-actions">
             <a th:href="@{/admin/spaces/new}" class="add-btn">＋ 新規作成</a>
+            <!-- ダッシュボードへ戻るボタン（要件対応） -->
+            <a th:href="@{/admin/dashboard}" class="add-btn">ダッシュボードへ戻る</a>
         </div>
 
         <table class="space-table">
@@ -45,11 +99,13 @@
                     <th>開始</th>
                     <th>終了</th>
                     <th>座席数（時間帯ごと）</th>
+                    <th>編集</th>
                     <th>削除</th>
                 </tr>
             </thead>
 
             <tbody>
+                <!-- SpaceController 側で spaceList / timeList / seatMap を詰める -->
                 <tr th:each="space : ${spaceList}">
                     <td th:text="${space.id}"></td>
                     <td th:text="${space.name}"></td>
@@ -57,35 +113,30 @@
                     <td th:text="${space.availableFrom}"></td>
                     <td th:text="${space.availableTo}"></td>
 
-                    <!-- 座席数（JSで + / - を叩く想定の既存仕様を維持） -->
                     <td>
+                        <!-- 時間帯ごとの座席数（＋/−で更新） -->
                         <div th:each="ts : ${timeList}" class="seat-row">
-                            <span th:text="${ts.time}"></span>
+                            <span class="seat-time" th:text="${ts.time}"></span>
 
                             <button type="button"
                                     class="seat-btn minus"
-                                    th:attr="data-space-id=${space.id},data-time-id=${ts.id}">
-                                −
-                            </button>
+                                    th:attr="onclick=${'changeSeat(' + space.id + ',' + ts.spaceTimesId + ',-1)'}">−</button>
 
                             <span class="seat-count"
-                                  th:attr="id=${'seat-' + space.id + '-' + ts.id}"
-                                  th:text="${seatMap[space.id + '-' + ts.id]}">
-                            </span>
+                                  th:attr="id=${'seatCount-' + space.id + '-' + ts.spaceTimesId}"
+                                  th:text="${seatMap[space.id + '-' + ts.spaceTimesId]}">0</span>
 
                             <button type="button"
                                     class="seat-btn plus"
-                                    th:attr="data-space-id=${space.id},data-time-id=${ts.id}">
-                                ＋
-                            </button>
+                                    th:attr="onclick=${'changeSeat(' + space.id + ',' + ts.spaceTimesId + ',1)'}">＋</button>
                         </div>
                     </td>
 
                     <td>
-                        <!--
-                            【修正点】
-                            削除は SpaceController: POST /admin/spaces/delete/{id}
-                         -->
+                        <a th:href="@{/admin/spaces/edit/{id}(id=${space.id})}" class="btn">編集</a>
+                    </td>
+
+                    <td>
                         <form th:action="@{/admin/spaces/delete/{id}(id=${space.id})}"
                               method="post"
                               onsubmit="return confirm('このスペースを削除しますか？');">
