@@ -17,6 +17,12 @@
 		<java.version>1.8</java.version>
 	</properties>
 	<dependencies>
+		<!-- JUnit -->
+		<dependency>
+		     <groupId>org.springframework.boot</groupId>
+		     <artifactId>spring-boot-starter-test</artifactId>
+		     <scope>test</scope>
+    	</dependency>
 		<!-- 他の依存関係の設定 -->
 	    
 	    

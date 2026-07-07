@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>レビュー投稿</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body>
+
+    <!-- ナビゲーション -->
+    <div class="navigation">
+        <div class="nav-left">
+            <span class="login-user" th:text="${session.loginUser.name + 'さんログイン中'}"></span>
+        </div>
+        <div class="nav-right">
+            <a th:href="@{/mypage}" class="btn">マイページ</a>
+            <a th:href="@{/logout}" class="btn">ログアウト</a>
+        </div>
+    </div>
+
+    <h1>レビュー</h1>
+
+    <div class="message error" th:if="${error}" th:text="${error}"></div>
+
+    <div class="reservation-card">
+        <div class="space-item">
+            <strong>スペース名：</strong>
+            <span th:text="${space != null ? space.name : '（不明）'}"></span>
+        </div>
+        <div class="space-item">
+            <strong>予約日：</strong>
+            <span th:text="${reservation.reservationDay}"></span>
+        </div>
+
+        <form th:action="@{/review/save}" method="post">
+            <input type="hidden" name="reservationId" th:value="${reservation.id}" />
+
+            <div class="space-item">
+                <strong>評価（1〜5）：</strong>
+                <select name="rating" required>
+                    <option value="">選択してください</option>
+                    <option value="1" th:selected="${review.rating == 1}">1</option>
+                    <option value="2" th:selected="${review.rating == 2}">2</option>
+                    <option value="3" th:selected="${review.rating == 3}">3</option>
+                    <option value="4" th:selected="${review.rating == 4}">4</option>
+                    <option value="5" th:selected="${review.rating == 5}">5</option>
+                </select>
+            </div>
+
+            <div class="space-item">
+                <strong>コメント：</strong>
+                <textarea name="comment" rows="4" cols="40" th:text="${review.comment}"></textarea>
+            </div>
+
+            <div class="button-wrapper">
+                <button type="submit" class="btn-orange">保存</button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>
